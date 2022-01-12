@@ -41,16 +41,16 @@ func _parent_SK_to_lamport_PK(parent_SK *big.Int, index uint32) []byte {
 	lamport_0 := _IKM_to_lamport_SK(IKM, salt)
 	_flip_bits(IKM)
 	lamport_1 := _IKM_to_lamport_SK(IKM, salt)
-	lamport_PK := ""
+	var lamport_PK []byte
 
 	for i := 0; i < len(lamport_0); i++ {
 		sum := sha256.Sum256(lamport_0[i])
-		lamport_PK += string(sum[:])
+		lamport_PK = append(lamport_PK, sum[:]...)
 	}
 
 	for i := 0; i < len(lamport_1); i++ {
 		sum := sha256.Sum256(lamport_1[i])
-		lamport_PK += string(sum[:])
+		lamport_PK = append(lamport_PK, sum[:]...)
 	}
 
 	compressed_lamport_PK := sha256.Sum256([]byte(lamport_PK))
