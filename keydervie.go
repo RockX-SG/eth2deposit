@@ -3,13 +3,17 @@ package main
 import (
 	"crypto/sha256"
 	"io"
+	"math/big"
 
 	"golang.org/x/crypto/hkdf"
 )
 
-func IKM_to_lamport_SK(IKM []byte, salt []byte) [][]byte {
-	K := 32
-	L := K * 255
+const (
+	K = 32
+	L = K * 255
+)
+
+func _IKM_to_lamport_SK(IKM []byte, salt []byte) [][]byte {
 	PRK := hkdf.Extract(sha256.New, []byte(IKM), []byte(salt))
 	okmReader := hkdf.Expand(sha256.New, PRK, []byte(""))
 
@@ -25,4 +29,36 @@ func IKM_to_lamport_SK(IKM []byte, salt []byte) [][]byte {
 	}
 
 	return lamport_SK
+}
+
+func _parent_SK_to_lamport_PK(parent_SK *big.Int, index uint32) []byte {
+	salt := make([]byte, 4)
+	IKM := make([]byte, K)
+
+	big.NewInt(int64(index)).FillBytes(salt)
+	parent_SK.FillBytes(IKM)
+
+	lamport_0 := _IKM_to_lamport_SK(IKM, salt)
+	_flip_bits(IKM)
+	lamport_1 := _IKM_to_lamport_SK(IKM, salt)
+	lamport_PK := ""
+
+	for i := 0; i < len(lamport_0); i++ {
+		sum := sha256.Sum256(lamport_0[i])
+		lamport_PK += string(sum[:])
+	}
+
+	for i := 0; i < len(lamport_1); i++ {
+		sum := sha256.Sum256(lamport_1[i])
+		lamport_PK += string(sum[:])
+	}
+
+	compressed_lamport_PK := sha256.Sum256([]byte(lamport_PK))
+	return compressed_lamport_PK[:]
+}
+
+func _flip_bits(in []byte) {
+	for i := 0; i < len(in); i++ {
+		in[i] = ^in[i]
+	}
 }

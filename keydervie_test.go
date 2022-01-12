@@ -1,17 +1,28 @@
 package main
 
 import (
+	"crypto/rand"
 	"encoding/hex"
+	"io"
+	"math/big"
 	"testing"
 )
 
-func TestIKMtoLamportSK(t *testing.T) {
+func Test_IKM_to_lamport_SK(t *testing.T) {
 	salt := []byte("test")
 	ikm := []byte("this is a secret")
-	lamport_sk := IKM_to_lamport_SK(ikm, salt)
+	lamport_sk := _IKM_to_lamport_SK(ikm, salt)
 
 	for k := range lamport_sk {
 		t.Log(hex.EncodeToString(lamport_sk[k]))
 	}
 	t.Log("total chunk:", len(lamport_sk))
+}
+
+func Test_parent_SK_to_lamport_PK(t *testing.T) {
+	randKey := make([]byte, 32)
+	io.ReadFull(rand.Reader, randKey)
+	key := new(big.Int).SetBytes(randKey)
+	compressed_pk := _parent_SK_to_lamport_PK(key, 0)
+	t.Log(hex.EncodeToString(compressed_pk))
 }
