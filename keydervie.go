@@ -18,6 +18,11 @@ var (
 	BigIntZero = big.NewInt(0)
 )
 
+func _flip_bits(in []byte) {
+	for i := 0; i < len(in); i++ {
+		in[i] = ^in[i]
+	}
+}
 func _IKM_to_lamport_SK(IKM []byte, salt []byte) [][]byte {
 	PRK := hkdf.Extract(sha256.New, []byte(IKM), []byte(salt))
 	okmReader := hkdf.Expand(sha256.New, PRK, []byte(""))
@@ -75,6 +80,7 @@ func _HKDF_mod_r(IKM []byte, key_info []byte) *big.Int {
 	if !ok {
 		panic("BLS 12-381 curve")
 	}
+
 	salt := []byte("BLS-SIG-KEYGEN-SALT-")
 	SK := new(big.Int)
 
@@ -112,8 +118,15 @@ func _HKDF_mod_r(IKM []byte, key_info []byte) *big.Int {
 	return SK
 }
 
-func _flip_bits(in []byte) {
-	for i := 0; i < len(in); i++ {
-		in[i] = ^in[i]
+func _derive_child_SK(parent_SK *big.Int, index uint32) (child_SK *big.Int) {
+	compressed_lamport_PK := _parent_SK_to_lamport_PK(parent_SK, index)
+	return _HKDF_mod_r(compressed_lamport_PK, nil)
+}
+
+func _derive_master_SK(seed []byte) (SK *big.Int) {
+	if len(seed) < 32 {
+		panic("`len(seed)` should be greater than or equal to 32.")
 	}
+
+	return _HKDF_mod_r(seed, nil)
 }

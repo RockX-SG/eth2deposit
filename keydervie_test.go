@@ -33,3 +33,22 @@ func Test_HKDF_mod_r(t *testing.T) {
 	r := _HKDF_mod_r(randIKM, []byte(""))
 	t.Log(r)
 }
+
+func Test_derive_child_SK(t *testing.T) {
+	seed := make([]byte, 128)
+	io.ReadFull(rand.Reader, seed)
+
+	r := _derive_master_SK(seed)
+
+	for i := uint32(0); i < 256; i++ {
+		t.Log(_derive_child_SK(r, i))
+	}
+}
+
+func Test_derive_master_SK(t *testing.T) {
+	seed := make([]byte, 128)
+	io.ReadFull(rand.Reader, seed)
+
+	r := _derive_master_SK(seed)
+	t.Log(r)
+}
