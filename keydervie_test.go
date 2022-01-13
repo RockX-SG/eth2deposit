@@ -26,3 +26,10 @@ func Test_parent_SK_to_lamport_PK(t *testing.T) {
 	compressed_pk := _parent_SK_to_lamport_PK(key, 0)
 	t.Log(hex.EncodeToString(compressed_pk))
 }
+
+func Test_HKDF_mod_r(t *testing.T) {
+	randIKM := make([]byte, 32)
+	io.ReadFull(rand.Reader, randIKM)
+	r := _HKDF_mod_r(randIKM, []byte(""))
+	t.Log(r)
+}
