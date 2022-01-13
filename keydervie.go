@@ -15,7 +15,8 @@ const (
 )
 
 var (
-	BigIntZero = big.NewInt(0)
+	salt = sha256.Sum256([]byte("BLS-SIG-KEYGEN-SALT-"))
+	R, _ = new(big.Int).SetString("52435875175126190479447740508185965837690552500527637822603658699938581184513", 10)
 )
 
 func _flip_bits(in []byte) {
@@ -23,9 +24,10 @@ func _flip_bits(in []byte) {
 		in[i] = ^in[i]
 	}
 }
+
 func _IKM_to_lamport_SK(IKM []byte, salt []byte) [][]byte {
 	PRK := hkdf.Extract(sha256.New, []byte(IKM), []byte(salt))
-	okmReader := hkdf.Expand(sha256.New, PRK, []byte(""))
+	okmReader := hkdf.Expand(sha256.New, PRK, nil)
 
 	var lamport_SK [][]byte
 	for i := 0; i < L/K; i++ {
@@ -63,7 +65,7 @@ func _parent_SK_to_lamport_PK(parent_SK *big.Int, index uint32) []byte {
 		lamport_PK = append(lamport_PK, sum[:]...)
 	}
 
-	compressed_lamport_PK := sha256.Sum256([]byte(lamport_PK))
+	compressed_lamport_PK := sha256.Sum256(lamport_PK)
 	return compressed_lamport_PK[:]
 }
 
@@ -76,28 +78,19 @@ func _parent_SK_to_lamport_PK(parent_SK *big.Int, index uint32) []byte {
 // 7.     SK = OS2IP(OKM) mod r
 // 8. return SK
 func _HKDF_mod_r(IKM []byte, key_info []byte) *big.Int {
-	R, ok := new(big.Int).SetString("52435875175126190479447740508185965837690552500527637822603658699938581184513", 10)
-	if !ok {
-		panic("BLS 12-381 curve")
-	}
-
-	salt := []byte("BLS-SIG-KEYGEN-SALT-")
-	SK := new(big.Int)
-
-	sum := sha256.Sum256(salt)
-	salt = sum[:]
 	L := 48
 
 	infoExtra := make([]byte, 2)
 	binary.BigEndian.PutUint16(infoExtra, uint16(L))
 
-	for SK.Cmp(BigIntZero) == 0 {
+	SK := new(big.Int)
+	for SK.BitLen() == 0 {
 		// PRK = HKDF-Extract(salt, IKM || I2OSP(0, 1))
 		ikm := make([]byte, len(IKM))
 		copy(ikm, IKM)
 		ikm = append(ikm, 0) // I20SP(0,1)
 
-		PRK := hkdf.Extract(sha256.New, ikm, salt)
+		PRK := hkdf.Extract(sha256.New, ikm, salt[:])
 
 		//  OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L)
 		info := make([]byte, len(key_info))
@@ -112,7 +105,7 @@ func _HKDF_mod_r(IKM []byte, key_info []byte) *big.Int {
 		}
 
 		SK = new(big.Int).SetBytes(OKM)
-		SK = SK.Mod(SK, R)
+		SK.Mod(SK, R)
 	}
 
 	return SK
