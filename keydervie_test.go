@@ -30,7 +30,8 @@ var (
 func Test_IKM_to_lamport_SK(t *testing.T) {
 	salt := []byte("test")
 	ikm := []byte("this is a secret")
-	lamport_sk := _IKM_to_lamport_SK(ikm, salt)
+	lamport_sk, err := _IKM_to_lamport_SK(ikm, salt)
+	assert.Nil(t, err)
 
 	for k := range lamport_sk {
 		t.Log(hex.EncodeToString(lamport_sk[k]))
@@ -42,7 +43,8 @@ func Test_parent_SK_to_lamport_PK(t *testing.T) {
 	randKey := make([]byte, 32)
 	io.ReadFull(rand.Reader, randKey)
 	key := new(big.Int).SetBytes(randKey)
-	compressed_pk := _parent_SK_to_lamport_PK(key, 0)
+	compressed_pk, err := _parent_SK_to_lamport_PK(key, 0)
+	assert.Nil(t, err)
 	t.Log(hex.EncodeToString(compressed_pk))
 }
 
@@ -68,8 +70,10 @@ func _doTestDerive(t *testing.T, seed *big.Int, master_sk *big.Int, child_sk *bi
 		bts = extend
 	}
 
-	r := _derive_master_SK(bts)
+	r, err := _derive_master_SK(bts)
+	assert.Nil(t, err)
 	assert.Equal(t, master_sk, r)
-	r = _derive_child_SK(r, index)
+	r, err = _derive_child_SK(r, index)
+	assert.Nil(t, err)
 	assert.Equal(t, child_sk, r)
 }

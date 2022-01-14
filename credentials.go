@@ -39,7 +39,7 @@ func _path_to_nodes(path string) []uint32 {
 
 }
 
-func _seed_and_path_to_key(seed *big.Int, path string) *big.Int {
+func _seed_and_path_to_key(seed *big.Int, path string) (*big.Int, error) {
 	bts := seed.Bytes()
 	if len(bts) < 32 {
 		extend := make([]byte, 32)
@@ -47,12 +47,19 @@ func _seed_and_path_to_key(seed *big.Int, path string) *big.Int {
 		bts = extend
 	}
 
-	sk := _derive_master_SK(bts)
+	sk, err := _derive_master_SK(bts)
+	if err != nil {
+		return nil, err
+	}
+
 	nodes := _path_to_nodes(path)
 	for k := range nodes {
-		sk = _derive_child_SK(sk, nodes[k])
+		sk, err = _derive_child_SK(sk, nodes[k])
+		if err != nil {
+			return nil, err
+		}
 	}
-	return sk
+	return sk, nil
 }
 
 const (
@@ -65,14 +72,23 @@ type Credential struct {
 	signing_sk    *big.Int
 }
 
-func NewCredential(seed *big.Int, account uint32) *Credential {
+func NewCredential(seed *big.Int, account uint32) (*Credential, error) {
 	cred := new(Credential)
 	withdrawal_key_path := fmt.Sprintf("m/%v/%v/%d/0", purpose, coin_type, account)
-	cred.withdrawal_sk = _seed_and_path_to_key(seed, withdrawal_key_path)
+	withdrawal_sk, err := _seed_and_path_to_key(seed, withdrawal_key_path)
+	if err != nil {
+		return nil, err
+	}
+	cred.withdrawal_sk = withdrawal_sk
 
 	signing_key_path := fmt.Sprintf("%s/0", withdrawal_key_path)
-	cred.signing_sk = _seed_and_path_to_key(seed, signing_key_path)
-	return cred
+	signing_sk, err := _seed_and_path_to_key(seed, signing_key_path)
+	if err != nil {
+		return nil, err
+	}
+	cred.signing_sk = signing_sk
+
+	return cred, nil
 }
 
 func (cred *Credential) WithdrawalSK() *big.Int { return cred.withdrawal_sk }

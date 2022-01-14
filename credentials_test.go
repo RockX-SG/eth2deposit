@@ -17,13 +17,15 @@ var (
 )
 
 func Test_seed_and_path_to_key(t *testing.T) {
-	sk := _seed_and_path_to_key(seed, path)
+	sk, err := _seed_and_path_to_key(seed, path)
+	assert.Nil(t, err)
 	assert.Equal(t, child_SK, sk)
 	t.Log(sk)
 }
 
 func TestWithdrawlSK(t *testing.T) {
-	cred := NewCredential(seed, 0)
+	cred, err := NewCredential(seed, 0)
+	assert.Nil(t, err)
 	t.Log(cred.WithdrawalSK())
 	t.Log(cred.SigningSK())
 }

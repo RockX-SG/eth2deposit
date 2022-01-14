@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/binary"
+	"errors"
 	"io"
 	"math/big"
 
@@ -25,7 +26,7 @@ func _flip_bits(in []byte) {
 	}
 }
 
-func _IKM_to_lamport_SK(IKM []byte, salt []byte) [][]byte {
+func _IKM_to_lamport_SK(IKM []byte, salt []byte) ([][]byte, error) {
 	PRK := hkdf.Extract(sha256.New, []byte(IKM), []byte(salt))
 	okmReader := hkdf.Expand(sha256.New, PRK, nil)
 
@@ -34,27 +35,34 @@ func _IKM_to_lamport_SK(IKM []byte, salt []byte) [][]byte {
 		chunk := make([]byte, K)
 		_, err := io.ReadFull(okmReader, chunk)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		lamport_SK = append(lamport_SK, chunk)
 	}
 
-	return lamport_SK
+	return lamport_SK, nil
 }
 
-func _parent_SK_to_lamport_PK(parent_SK *big.Int, index uint32) []byte {
+func _parent_SK_to_lamport_PK(parent_SK *big.Int, index uint32) ([]byte, error) {
 	salt := make([]byte, 4)
-
 	binary.BigEndian.PutUint32(salt, index)
+
 	IKM := make([]byte, K)
 	parent_SK.FillBytes(IKM)
 
-	lamport_0 := _IKM_to_lamport_SK(IKM, salt)
-	_flip_bits(IKM)
-	lamport_1 := _IKM_to_lamport_SK(IKM, salt)
-	var lamport_PK []byte
+	lamport_0, err := _IKM_to_lamport_SK(IKM, salt)
+	if err != nil {
+		return nil, err
+	}
 
+	_flip_bits(IKM)
+	lamport_1, err := _IKM_to_lamport_SK(IKM, salt)
+	if err != nil {
+		return nil, err
+	}
+
+	var lamport_PK []byte
 	for i := 0; i < len(lamport_0); i++ {
 		sum := sha256.Sum256(lamport_0[i])
 		lamport_PK = append(lamport_PK, sum[:]...)
@@ -66,7 +74,7 @@ func _parent_SK_to_lamport_PK(parent_SK *big.Int, index uint32) []byte {
 	}
 
 	compressed_lamport_PK := sha256.Sum256(lamport_PK)
-	return compressed_lamport_PK[:]
+	return compressed_lamport_PK[:], nil
 }
 
 // 1. salt = "BLS-SIG-KEYGEN-SALT-"
@@ -111,15 +119,18 @@ func _HKDF_mod_r(IKM []byte, key_info []byte) *big.Int {
 	return SK
 }
 
-func _derive_child_SK(parent_SK *big.Int, index uint32) (child_SK *big.Int) {
-	compressed_lamport_PK := _parent_SK_to_lamport_PK(parent_SK, index)
-	return _HKDF_mod_r(compressed_lamport_PK, nil)
+func _derive_child_SK(parent_SK *big.Int, index uint32) (child_SK *big.Int, err error) {
+	compressed_lamport_PK, err := _parent_SK_to_lamport_PK(parent_SK, index)
+	if err != nil {
+		return nil, err
+	}
+	return _HKDF_mod_r(compressed_lamport_PK, nil), nil
 }
 
-func _derive_master_SK(seed []byte) (SK *big.Int) {
+func _derive_master_SK(seed []byte) (SK *big.Int, err error) {
 	if len(seed) < 32 {
-		panic("`len(seed)` should be greater than or equal to 32.")
+		return nil, errors.New("`len(seed)` should be greater than or equal to 32.")
 	}
 
-	return _HKDF_mod_r(seed, nil)
+	return _HKDF_mod_r(seed, nil), nil
 }
