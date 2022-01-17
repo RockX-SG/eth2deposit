@@ -6,6 +6,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"go.dedis.ch/kyber/v3"
+	"go.dedis.ch/kyber/v3/pairing/bn256"
 )
 
 func _path_to_nodes(path string) []uint32 {
@@ -93,3 +96,21 @@ func NewCredential(seed *big.Int, account uint32) (*Credential, error) {
 
 func (cred *Credential) WithdrawalSK() *big.Int { return cred.withdrawal_sk }
 func (cred *Credential) SigningSK() *big.Int    { return cred.signing_sk }
+
+func (cred *Credential) SkToPk(s *bn256.Suite, pt kyber.Point) ([]byte, error) {
+	//POW_2_283 := big.NewInt(0).Lsh(283)
+	//POW_2_382 := big.NewInt(0).Lsh(382)
+	//bts, err := pt.MarshalBinary()
+	//if err != nil {
+	//		return nil, err
+	//	}
+	//elliptic.Unmarshal(
+	return nil, nil
+}
+
+func (cred *Credential) SigningPK() (pk kyber.Point) {
+	s := bn256.NewSuiteG2()
+	priv := s.Scalar().SetBytes(cred.signing_sk.Bytes())
+	pub := s.Point().Mul(priv, nil)
+	return pub
+}

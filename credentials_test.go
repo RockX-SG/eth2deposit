@@ -23,9 +23,16 @@ func Test_seed_and_path_to_key(t *testing.T) {
 	t.Log(sk)
 }
 
-func TestWithdrawlSK(t *testing.T) {
+func TestSK(t *testing.T) {
 	cred, err := NewCredential(seed, 0)
 	assert.Nil(t, err)
 	t.Log(cred.WithdrawalSK())
 	t.Log(cred.SigningSK())
+}
+
+func TestPK(t *testing.T) {
+	cred, err := NewCredential(seed, 0)
+	assert.Nil(t, err)
+	pk := cred.SigningPK()
+	t.Log(pk)
 }
