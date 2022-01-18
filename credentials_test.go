@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"math/big"
 	"testing"
 
@@ -24,23 +25,35 @@ func Test_seed_and_path_to_key(t *testing.T) {
 }
 
 func TestSK(t *testing.T) {
-	cred, err := NewCredential(seed, 0)
+	cred, err := NewCredential(seed, 0, nil)
 	assert.Nil(t, err)
 	t.Log(cred.WithdrawalSK())
 	t.Log(cred.SigningSK())
 }
 
 func TestPK(t *testing.T) {
-	cred, err := NewCredential(seed, 0)
+	cred, err := NewCredential(seed, 0, nil)
 	assert.Nil(t, err)
 
 	pub, err := cred.SigningPK()
 	assert.Nil(t, err)
-	t.Log("signing public key:", pub)
+	t.Log("signing public key:", hex.EncodeToString(pub))
 
 	pub, err = cred.WithdrawalPK()
 	assert.Nil(t, err)
-	t.Log("withdrawal public key:", pub)
+	t.Log("withdrawal public key:", hex.EncodeToString(pub))
 	//	bts, err := pk.MarshalBinary()
 	//	assert.Nil(t, err)
+}
+
+func TestCrendentials(t *testing.T) {
+	cred, err := NewCredential(seed, 0, []byte("0ce20f2274F4260eFC0D3FD4d736581C403d52Ba"))
+	assert.Nil(t, err)
+	tp, err := cred.withdrawType()
+	assert.Nil(t, err)
+	t.Log("type:", tp)
+
+	bts, err := cred.WithdrawCredentials()
+	assert.Nil(t, err)
+	t.Log("withdraw crendentials:", hex.EncodeToString(bts))
 }

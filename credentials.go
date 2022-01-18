@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -75,12 +76,14 @@ const (
 )
 
 type Credential struct {
-	withdrawal_sk *big.Int
-	signing_sk    *big.Int
+	eth1_withdrawal_address []byte
+	withdrawal_sk           *big.Int
+	signing_sk              *big.Int
 }
 
-func NewCredential(seed *big.Int, account uint32) (*Credential, error) {
+func NewCredential(seed *big.Int, account uint32, hex_eth1_withdrawal_address []byte) (*Credential, error) {
 	cred := new(Credential)
+	cred.eth1_withdrawal_address = hex_eth1_withdrawal_address
 	withdrawal_key_path := fmt.Sprintf("m/%v/%v/%d/0", purpose, coin_type, account)
 	withdrawal_sk, err := _seed_and_path_to_key(seed, withdrawal_key_path)
 	if err != nil {
@@ -101,22 +104,65 @@ func NewCredential(seed *big.Int, account uint32) (*Credential, error) {
 func (cred *Credential) WithdrawalSK() *big.Int { return cred.withdrawal_sk }
 func (cred *Credential) SigningSK() *big.Int    { return cred.signing_sk }
 
-func (cred *Credential) SigningPK() (pub string, err error) {
+func (cred *Credential) SigningPK() (pub []byte, err error) {
 	sec := new(bls.SecretKey)
 	err = sec.SetDecString(cred.signing_sk.Text(10))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return sec.GetPublicKey().SerializeToHexStr(), nil
+	return sec.GetPublicKey().Serialize(), nil
 }
 
-func (cred *Credential) WithdrawalPK() (pub string, err error) {
+func (cred *Credential) WithdrawalPK() (pub []byte, err error) {
 	sec := new(bls.SecretKey)
 	err = sec.SetDecString(cred.withdrawal_sk.Text(10))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return sec.GetPublicKey().SerializeToHexStr(), nil
+	return sec.GetPublicKey().Serialize(), nil
+}
+
+func (cred *Credential) withdrawPrefix() byte {
+	if cred.eth1_withdrawal_address == nil {
+		return ETH1_ADDRESS_WITHDRAWAL_PREFIX
+	}
+	return BLS_WITHDRAWAL_PREFIX
+}
+
+func (cred *Credential) withdrawType() (WithdrawType, error) {
+	prefix := cred.withdrawPrefix()
+	if prefix == BLS_WITHDRAWAL_PREFIX {
+		return BLS_WITHDRAWAL, nil
+	} else if prefix == ETH1_ADDRESS_WITHDRAWAL_PREFIX {
+		return ETH1_ADDRESS_WITHDRAWAL, nil
+	}
+	return INVALID_WITHDRAW, ErrorWithdrawPrefix
+}
+
+func (cred *Credential) WithdrawCredentials() ([]byte, error) {
+	var withdrawal_credentials []byte
+	withdrawType, err := cred.withdrawType()
+	if err != nil {
+		return nil, err
+	}
+
+	if withdrawType == BLS_WITHDRAWAL {
+		withdrawal_credentials = append(withdrawal_credentials, BLS_WITHDRAWAL_PREFIX)
+		pub, err := cred.WithdrawalPK()
+		if err != nil {
+			return nil, err
+		}
+		sum := sha256.Sum256(pub)
+		withdrawal_credentials = append(withdrawal_credentials, sum[1:]...)
+	} else if withdrawType == ETH1_ADDRESS_WITHDRAWAL && cred.eth1_withdrawal_address != nil {
+		withdrawal_credentials = append(withdrawal_credentials, ETH1_ADDRESS_WITHDRAWAL_PREFIX)
+		withdrawal_credentials = append(withdrawal_credentials, make([]byte, 11)...)
+		withdrawal_credentials = append(withdrawal_credentials, cred.eth1_withdrawal_address...)
+	} else {
+		return nil, ErrorWithdrawType
+	}
+
+	return withdrawal_credentials, nil
 }
