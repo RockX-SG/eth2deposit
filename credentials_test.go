@@ -33,9 +33,14 @@ func TestSK(t *testing.T) {
 func TestPK(t *testing.T) {
 	cred, err := NewCredential(seed, 0)
 	assert.Nil(t, err)
+
 	pub, err := cred.SigningPK()
 	assert.Nil(t, err)
-	t.Log(pub)
+	t.Log("signing public key:", pub)
+
+	pub, err = cred.WithdrawalPK()
+	assert.Nil(t, err)
+	t.Log("withdrawal public key:", pub)
 	//	bts, err := pk.MarshalBinary()
 	//	assert.Nil(t, err)
 }
