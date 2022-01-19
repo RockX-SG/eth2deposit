@@ -64,13 +64,12 @@ func TestETHCrendentials(t *testing.T) {
 	assert.Nil(t, err)
 	t.Log("deposit message root:", hex.EncodeToString(root[:]))
 
-	_, err = cred.signedDeposit()
+	signed, err := cred.signedDeposit()
 	assert.Nil(t, err)
-	/*
-		root, err = signed.HashTreeRoot()
-		assert.Nil(t, err)
-		t.Log("signed deposit message root:", hex.EncodeToString(root[:]))
-	*/
+	root, err = signed.HashTreeRoot()
+	assert.Nil(t, err)
+	t.Log("signed deposit message root:", hex.EncodeToString(root[:]))
+	t.Log("signature:", hex.EncodeToString(signed.Signature))
 }
 
 func TestBLSCrendentials(t *testing.T) {
@@ -83,4 +82,17 @@ func TestBLSCrendentials(t *testing.T) {
 	bts, err := cred.WithdrawCredentials()
 	assert.Nil(t, err)
 	t.Log("bls withdraw crendentials:", hex.EncodeToString(bts))
+
+	msg, err := cred.depositMessage()
+	assert.Nil(t, err)
+	root, err := msg.HashTreeRoot()
+	assert.Nil(t, err)
+	t.Log("deposit message root:", hex.EncodeToString(root[:]))
+
+	signed, err := cred.signedDeposit()
+	assert.Nil(t, err)
+	root, err = signed.HashTreeRoot()
+	assert.Nil(t, err)
+	t.Log("signed deposit message root:", hex.EncodeToString(root[:]))
+	t.Log("signature:", hex.EncodeToString(signed.Signature))
 }
