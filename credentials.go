@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ferranbt/fastssz/spectests"
 	"github.com/herumi/bls-eth-go-binary/bls"
 )
 
@@ -142,8 +141,8 @@ func (cred *Credential) withdrawType() (WithdrawType, error) {
 	return INVALID_WITHDRAW, ErrorWithdrawPrefix
 }
 
-func (cred *Credential) depositMessage() (*spectests.DepositMessage, error) {
-	msg := new(spectests.DepositMessage)
+func (cred *Credential) depositMessage() (*DepositMessage, error) {
+	msg := new(DepositMessage)
 	pubkey, err := cred.SigningPK()
 	if err != nil {
 		return nil, err
@@ -161,7 +160,7 @@ func (cred *Credential) depositMessage() (*spectests.DepositMessage, error) {
 	return msg, nil
 }
 
-func (cred *Credential) signedDeposit() (*spectests.DepositData, error) {
+func (cred *Credential) signedDeposit() (*DepositData, error) {
 	// deposit message
 	depositMessage, err := cred.depositMessage()
 
@@ -194,11 +193,11 @@ func (cred *Credential) signedDeposit() (*spectests.DepositData, error) {
 	sig := sec.SignByte(messageToSign[:])
 
 	// deposit data
-	depositData := new(spectests.DepositData)
+	depositData := new(DepositData)
 	depositData.Amount = depositMessage.Amount
 	copy(depositData.WithdrawalCredentials[:], depositMessage.WithdrawalCredentials)
 	copy(depositData.Pubkey[:], depositMessage.Pubkey)
-	depositData.Signature = sig.Serialize()
+	copy(depositData.Signature[:], sig.Serialize())
 
 	return depositData, nil
 }

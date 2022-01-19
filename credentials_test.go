@@ -69,7 +69,7 @@ func TestETHCrendentials(t *testing.T) {
 	root, err = signed.HashTreeRoot()
 	assert.Nil(t, err)
 	t.Log("signed deposit message root:", hex.EncodeToString(root[:]))
-	t.Log("signature:", hex.EncodeToString(signed.Signature))
+	t.Log("signature:", hex.EncodeToString(signed.Signature[:]))
 }
 
 func TestBLSCrendentials(t *testing.T) {
@@ -94,5 +94,5 @@ func TestBLSCrendentials(t *testing.T) {
 	root, err = signed.HashTreeRoot()
 	assert.Nil(t, err)
 	t.Log("signed deposit message root:", hex.EncodeToString(root[:]))
-	t.Log("signature:", hex.EncodeToString(signed.Signature))
+	t.Log("signature:", hex.EncodeToString(signed.Signature[:]))
 }
