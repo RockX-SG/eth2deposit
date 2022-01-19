@@ -51,9 +51,20 @@ func TestCrendentials(t *testing.T) {
 	assert.Nil(t, err)
 	tp, err := cred.withdrawType()
 	assert.Nil(t, err)
-	t.Log("type:", tp)
+	assert.EqualValues(t, ETH1_ADDRESS_WITHDRAWAL, tp)
 
 	bts, err := cred.WithdrawCredentials()
 	assert.Nil(t, err)
-	t.Log("withdraw crendentials:", hex.EncodeToString(bts))
+	t.Log("eth 1 withdraw crendentials:", hex.EncodeToString(bts))
+
+	cred, err = NewCredential(seed, 0, nil)
+	assert.Nil(t, err)
+	tp, err = cred.withdrawType()
+	assert.Nil(t, err)
+	assert.EqualValues(t, BLS_WITHDRAWAL, tp)
+
+	bts, err = cred.WithdrawCredentials()
+	assert.Nil(t, err)
+	t.Log("bls withdraw crendentials:", hex.EncodeToString(bts))
+
 }

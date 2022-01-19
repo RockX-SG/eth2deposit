@@ -125,7 +125,7 @@ func (cred *Credential) WithdrawalPK() (pub []byte, err error) {
 }
 
 func (cred *Credential) withdrawPrefix() byte {
-	if cred.eth1_withdrawal_address == nil {
+	if cred.eth1_withdrawal_address != nil {
 		return ETH1_ADDRESS_WITHDRAWAL_PREFIX
 	}
 	return BLS_WITHDRAWAL_PREFIX
