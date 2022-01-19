@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ferranbt/fastssz/spectests"
 	"github.com/herumi/bls-eth-go-binary/bls"
 )
 
@@ -139,6 +140,67 @@ func (cred *Credential) withdrawType() (WithdrawType, error) {
 		return ETH1_ADDRESS_WITHDRAWAL, nil
 	}
 	return INVALID_WITHDRAW, ErrorWithdrawPrefix
+}
+
+func (cred *Credential) depositMessage() (*spectests.DepositMessage, error) {
+	msg := new(spectests.DepositMessage)
+	pubkey, err := cred.SigningPK()
+	if err != nil {
+		return nil, err
+	}
+
+	withdrawCredential, err := cred.WithdrawCredentials()
+	if err != nil {
+		return nil, err
+	}
+
+	msg.Pubkey = pubkey
+	msg.WithdrawalCredentials = withdrawCredential
+	msg.Amount = uint64(1e9 * 32)
+
+	return msg, nil
+}
+
+func (cred *Credential) signedDeposit() (*spectests.DepositData, error) {
+	// deposit message
+	depositMessage, err := cred.depositMessage()
+
+	// deposit domain
+	domain, err := compute_deposit_domain(MainnetSetting.GENESIS_FORK_VERSION)
+	if err != nil {
+		return nil, err
+	}
+
+	// signing root
+	signingRoot := new(SigningData)
+	copy(signingRoot.Domain[:], domain)
+	objectRoot, err := depositMessage.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+	signingRoot.ObjectRoot = objectRoot
+
+	// sign
+	messageToSign, err := signingRoot.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	sec := new(bls.SecretKey)
+	err = sec.SetDecString(cred.signing_sk.Text(10))
+	if err != nil {
+		return nil, err
+	}
+	sig := sec.SignByte(messageToSign[:])
+
+	// deposit data
+	depositData := new(spectests.DepositData)
+	depositData.Amount = depositMessage.Amount
+	copy(depositData.WithdrawalCredentials[:], depositMessage.WithdrawalCredentials)
+	copy(depositData.Pubkey[:], depositMessage.Pubkey)
+	depositData.Signature = sig.Serialize()
+
+	return depositData, nil
 }
 
 func (cred *Credential) WithdrawCredentials() ([]byte, error) {

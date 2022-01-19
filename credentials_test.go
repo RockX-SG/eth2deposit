@@ -46,8 +46,9 @@ func TestPK(t *testing.T) {
 	//	assert.Nil(t, err)
 }
 
-func TestCrendentials(t *testing.T) {
-	cred, err := NewCredential(seed, 0, []byte("0ce20f2274F4260eFC0D3FD4d736581C403d52Ba"))
+func TestETHCrendentials(t *testing.T) {
+	account, _ := new(big.Int).SetString("0x0ce20f2274F4260eFC0D3FD4d736581C403d52Ba", 0)
+	cred, err := NewCredential(seed, 0, account.Bytes())
 	assert.Nil(t, err)
 	tp, err := cred.withdrawType()
 	assert.Nil(t, err)
@@ -57,14 +58,29 @@ func TestCrendentials(t *testing.T) {
 	assert.Nil(t, err)
 	t.Log("eth 1 withdraw crendentials:", hex.EncodeToString(bts))
 
-	cred, err = NewCredential(seed, 0, nil)
+	msg, err := cred.depositMessage()
 	assert.Nil(t, err)
-	tp, err = cred.withdrawType()
+	root, err := msg.HashTreeRoot()
+	assert.Nil(t, err)
+	t.Log("deposit message root:", hex.EncodeToString(root[:]))
+
+	_, err = cred.signedDeposit()
+	assert.Nil(t, err)
+	/*
+		root, err = signed.HashTreeRoot()
+		assert.Nil(t, err)
+		t.Log("signed deposit message root:", hex.EncodeToString(root[:]))
+	*/
+}
+
+func TestBLSCrendentials(t *testing.T) {
+	cred, err := NewCredential(seed, 0, nil)
+	assert.Nil(t, err)
+	tp, err := cred.withdrawType()
 	assert.Nil(t, err)
 	assert.EqualValues(t, BLS_WITHDRAWAL, tp)
 
-	bts, err = cred.WithdrawCredentials()
+	bts, err := cred.WithdrawCredentials()
 	assert.Nil(t, err)
 	t.Log("bls withdraw crendentials:", hex.EncodeToString(bts))
-
 }
