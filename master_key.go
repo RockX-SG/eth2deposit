@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/sha256"
 	"fmt"
 	"math/big"
@@ -25,9 +27,9 @@ func NewMasterKey(seed [seedLength]byte) *MasterKey {
 }
 
 // derive the N-th id with current master key with specified key size
+// Approach:
+// String-> Hash(String) -> Encrypt with seed -> elliptic ScalaMult -> Hash(Point)
 func (mkey *MasterKey) CreateCredential(id uint64) (*Credential, error) {
-	// Approach:
-	// String-> Hash(String) -> Encrypt with seed
 	content := fmt.Sprintf(encTemplate, id)
 	sum := sha256.Sum256([]byte(content))
 
@@ -45,7 +47,23 @@ func (mkey *MasterKey) CreateCredential(id uint64) (*Credential, error) {
 	}
 	aesBlock.Encrypt(sum[:], sum[:])
 
+	//  calc Public Key
+	var priv ecdsa.PrivateKey
+	priv.Curve = elliptic.P256()
+	priv.D = new(big.Int).SetBytes(sum[:])
+	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(priv.D.Bytes())
+
+	// dervied seed from (X,Y)
+	h := sha256.New()
+	tmp := make([]byte, 32)
+	priv.PublicKey.X.FillBytes(tmp)
+	h.Write(tmp)
+
+	tmp = make([]byte, 32)
+	priv.PublicKey.Y.FillBytes(tmp)
+	h.Write(tmp)
+
 	// the result will be used as credential key
-	seed := new(big.Int).SetBytes(sum[:])
+	seed := new(big.Int).SetBytes(h.Sum(nil))
 	return NewCredential(seed, 0, nil)
 }

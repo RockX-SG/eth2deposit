@@ -14,8 +14,11 @@ func TestMasterKey(t *testing.T) {
 	master := NewMasterKey(masterKey)
 	assert.NotNil(t, master)
 
-	for i := 0; i < 1024; i++ {
-		_, err := master.CreateCredential(uint64(i))
+	for i := 0; i < 128; i++ {
+		cred, err := master.CreateCredential(uint64(i))
 		assert.Nil(t, err)
+		signed, err := cred.signedDeposit()
+		assert.Nil(t, err)
+		assert.NotNil(t, signed)
 	}
 }
