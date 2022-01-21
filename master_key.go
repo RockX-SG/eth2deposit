@@ -26,10 +26,10 @@ func NewMasterKey(seed [seedLength]byte) *MasterKey {
 	return mk
 }
 
-// derive the N-th id with current master key with specified key size
+// derive the N-th id with current master key
 // Approach:
 // String-> Hash(String) -> Encrypt with seed -> elliptic ScalaMult -> Hash(Point)
-func (mkey *MasterKey) CreateCredential(id uint64) (*Credential, error) {
+func (mkey *MasterKey) DeriveChild(id uint64) (*memguard.Enclave, error) {
 	content := fmt.Sprintf(encTemplate, id)
 	sum := sha256.Sum256([]byte(content))
 
@@ -63,7 +63,5 @@ func (mkey *MasterKey) CreateCredential(id uint64) (*Credential, error) {
 	priv.PublicKey.Y.FillBytes(tmp)
 	h.Write(tmp)
 
-	// the result will be used as credential key
-	seed := new(big.Int).SetBytes(h.Sum(nil))
-	return NewCredential(seed, 0, nil)
+	return memguard.NewEnclave(h.Sum(nil)), nil
 }

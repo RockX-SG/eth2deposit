@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"math/big"
 	"testing"
 
@@ -15,10 +16,11 @@ func TestMasterKey(t *testing.T) {
 	assert.NotNil(t, master)
 
 	for i := 0; i < 128; i++ {
-		cred, err := master.CreateCredential(uint64(i))
+		enclave, err := master.DeriveChild(uint64(i))
 		assert.Nil(t, err)
-		signed, err := cred.signedDeposit()
+		lb, err := enclave.Open()
 		assert.Nil(t, err)
-		assert.NotNil(t, signed)
+		t.Log("child", i, hex.EncodeToString(lb.Bytes()))
+		lb.Destroy()
 	}
 }
