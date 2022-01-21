@@ -25,6 +25,14 @@ func Test_seed_and_path_to_key(t *testing.T) {
 	t.Log(sk)
 }
 
+func TestMarshalText(t *testing.T) {
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil)
+	assert.Nil(t, err)
+	text, err := cred.MarshalText()
+	assert.Nil(t, err)
+	t.Log(string(text))
+}
+
 func TestSK(t *testing.T) {
 	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil)
 	assert.Nil(t, err)
@@ -59,7 +67,7 @@ func TestETHCrendentials(t *testing.T) {
 	assert.Nil(t, err)
 	t.Log("eth 1 withdraw crendentials:", hex.EncodeToString(bts))
 
-	msg, err := cred.depositMessage()
+	msg, err := cred.DepositMessage()
 	assert.Nil(t, err)
 	root, err := msg.HashTreeRoot()
 	assert.Nil(t, err)
@@ -84,7 +92,7 @@ func TestBLSCrendentials(t *testing.T) {
 	assert.Nil(t, err)
 	t.Log("bls withdraw crendentials:", hex.EncodeToString(bts))
 
-	msg, err := cred.depositMessage()
+	msg, err := cred.DepositMessage()
 	assert.Nil(t, err)
 	root, err := msg.HashTreeRoot()
 	assert.Nil(t, err)

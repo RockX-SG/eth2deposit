@@ -2,6 +2,8 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -122,7 +124,66 @@ func (cred *Credential) withdrawType() (WithdrawType, error) {
 	return INVALID_WITHDRAW, ErrorWithdrawPrefix
 }
 
-func (cred *Credential) depositMessage() (*DepositMessage, error) {
+/*******************************************************************************
+ *
+ * Public methods for credential
+ *
+ *******************************************************************************/
+
+type DepositDataJson struct {
+	PubKey             string `json:"pubkey"`
+	WithdrawCredential string `json:"withdrawal_credentials"`
+	Amount             int    `json:"amount"`
+	Signature          string `json:"signature"`
+	DepositMessageRoot string `json:"deposit_message_root"`
+	DepositDataRoot    string `json:"deposit_message_root"`
+	ForkVersion        string `json:"fork_version"`
+	Eth2NetworkName    string `json:"eth2_network_name"`
+	DepositCliVersion  string `json:"eth2_network_name"`
+}
+
+// String returns json string compatible with eth2deposit
+func (cred *Credential) MarshalText() ([]byte, error) {
+	msg := new(DepositDataJson)
+	withdraw_credential, err := cred.WithdrawCredentials()
+	if err != nil {
+		return nil, err
+	}
+	signed_deposit, err := cred.SignedDeposit()
+	if err != nil {
+		return nil, err
+	}
+	signed_deposit_root, err := signed_deposit.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	pubkey, err := cred.SigningPK()
+	if err != nil {
+		return nil, err
+	}
+	deposit_mesage, err := cred.DepositMessage()
+	if err != nil {
+		return nil, err
+	}
+
+	deposit_message_root, err := deposit_mesage.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	msg.PubKey = hex.EncodeToString(pubkey)
+	msg.WithdrawCredential = hex.EncodeToString(withdraw_credential)
+	msg.Amount = 32000000000
+	msg.Signature = hex.EncodeToString(signed_deposit.Signature[:])
+	msg.DepositMessageRoot = hex.EncodeToString(deposit_message_root[:])
+	msg.DepositDataRoot = hex.EncodeToString(signed_deposit_root[:])
+
+	return json.Marshal(msg)
+}
+
+// DepositMessage retreieves deposit message
+func (cred *Credential) DepositMessage() (*DepositMessage, error) {
 	msg := new(DepositMessage)
 	pubkey, err := cred.SigningPK()
 	if err != nil {
@@ -141,11 +202,6 @@ func (cred *Credential) depositMessage() (*DepositMessage, error) {
 	return msg, nil
 }
 
-/*******************************************************************************
- *
- * Public methods for credential
- *
- *******************************************************************************/
 // SigningPK returns public key of BLS signing account
 func (cred *Credential) SigningPK() (pub []byte, err error) {
 	sec := new(bls.SecretKey)
@@ -173,9 +229,11 @@ func (cred *Credential) WithdrawalPK() (pub []byte, err error) {
 
 	return sec.GetPublicKey().Serialize(), nil
 }
+
+// SignedDeposit returns the deposit data
 func (cred *Credential) SignedDeposit() (*DepositData, error) {
 	// deposit message
-	depositMessage, err := cred.depositMessage()
+	depositMessage, err := cred.DepositMessage()
 
 	// deposit domain
 	domain, err := compute_deposit_domain(MainnetSetting.GENESIS_FORK_VERSION)
