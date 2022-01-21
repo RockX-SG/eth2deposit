@@ -130,7 +130,7 @@ func (cred *Credential) withdrawType() (WithdrawType, error) {
  *
  *******************************************************************************/
 
-type DepositDataJson struct {
+type CompactDepositData struct {
 	PubKey             string `json:"pubkey"`
 	WithdrawCredential string `json:"withdrawal_credentials"`
 	Amount             int    `json:"amount"`
@@ -144,7 +144,7 @@ type DepositDataJson struct {
 
 // String returns json string compatible with eth2deposit
 func (cred *Credential) MarshalText() ([]byte, error) {
-	msg := new(DepositDataJson)
+	msg := new(CompactDepositData)
 	withdraw_credential, err := cred.WithdrawCredentials()
 	if err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ func (cred *Credential) MarshalText() ([]byte, error) {
 	msg.DepositMessageRoot = hex.EncodeToString(deposit_message_root[:])
 	msg.DepositDataRoot = hex.EncodeToString(signed_deposit_root[:])
 
-	return json.Marshal([]*DepositDataJson{msg})
+	return json.Marshal([]*CompactDepositData{msg})
 }
 
 // DepositMessage retreieves deposit message
