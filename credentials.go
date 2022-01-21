@@ -179,7 +179,7 @@ func (cred *Credential) MarshalText() ([]byte, error) {
 	msg.DepositMessageRoot = hex.EncodeToString(deposit_message_root[:])
 	msg.DepositDataRoot = hex.EncodeToString(signed_deposit_root[:])
 
-	return json.Marshal(msg)
+	return json.Marshal([]*DepositDataJson{msg})
 }
 
 // DepositMessage retreieves deposit message
