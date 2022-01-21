@@ -16,10 +16,12 @@ const (
 	encTemplate = "rockx.com/eth2/key_id/%v"
 )
 
+// MasterKey defines an enclaved master key for offering online service
 type MasterKey struct {
 	enclave *memguard.Enclave
 }
 
+// NewMasterKey creates an encalved key
 func NewMasterKey(seed [seedLength]byte) *MasterKey {
 	mk := new(MasterKey)
 	mk.enclave = memguard.NewEnclave(seed[:])
@@ -29,7 +31,7 @@ func NewMasterKey(seed [seedLength]byte) *MasterKey {
 // derive the N-th id with current master key
 // Approach:
 // String-> Hash(String) -> Encrypt with seed -> elliptic ScalaMult -> Hash(Point)
-func (mkey *MasterKey) DeriveChild(id uint64) (*memguard.Enclave, error) {
+func (mkey *MasterKey) DeriveChild(id uint64) (*memguard.LockedBuffer, error) {
 	content := fmt.Sprintf(encTemplate, id)
 	sum := sha256.Sum256([]byte(content))
 
@@ -63,5 +65,5 @@ func (mkey *MasterKey) DeriveChild(id uint64) (*memguard.Enclave, error) {
 	priv.PublicKey.Y.FillBytes(tmp)
 	h.Write(tmp)
 
-	return memguard.NewEnclave(h.Sum(nil)), nil
+	return memguard.NewBufferFromBytes(h.Sum(nil)), nil
 }

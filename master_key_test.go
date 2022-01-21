@@ -16,11 +16,9 @@ func TestMasterKey(t *testing.T) {
 	assert.NotNil(t, master)
 
 	for i := 0; i < 128; i++ {
-		enclave, err := master.DeriveChild(uint64(i))
+		buf, err := master.DeriveChild(uint64(i))
 		assert.Nil(t, err)
-		lb, err := enclave.Open()
-		assert.Nil(t, err)
-		t.Log("child", i, hex.EncodeToString(lb.Bytes()))
-		lb.Destroy()
+		t.Log("child", i, hex.EncodeToString(buf.Bytes()))
+		buf.Destroy()
 	}
 }
