@@ -1,4 +1,4 @@
-package main
+package eth2deposit
 
 import (
 	"errors"

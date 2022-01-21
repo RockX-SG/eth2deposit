@@ -1,4 +1,4 @@
-package main
+package eth2deposit
 
 type SigningData struct {
 	ObjectRoot [32]byte `json:"current_version" ssz-size:"32"`
