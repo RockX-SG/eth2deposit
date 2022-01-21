@@ -75,13 +75,14 @@ func _seed_and_path_to_key(seed *big.Int, path string) (*big.Int, error) {
 
 // Credential defines a ETH2 bls signing credential
 type Credential struct {
+	chain                   BaseChainSetting
 	eth1_withdrawal_address []byte
 	withdrawal_sk           *memguard.Enclave
 	signing_sk              *memguard.Enclave
 }
 
 // NewCredential creates an ETH2 BLS signing credential
-func NewCredential(buf *memguard.LockedBuffer, account uint32, hex_eth1_withdrawal_address []byte) (*Credential, error) {
+func NewCredential(buf *memguard.LockedBuffer, account uint32, hex_eth1_withdrawal_address []byte, chain BaseChainSetting) (*Credential, error) {
 	seed := new(big.Int).SetBytes(buf.Bytes())
 	defer buf.Destroy()
 
@@ -236,7 +237,7 @@ func (cred *Credential) SignedDeposit() (*DepositData, error) {
 	depositMessage, err := cred.DepositMessage()
 
 	// deposit domain
-	domain, err := compute_deposit_domain(MainnetSetting.GENESIS_FORK_VERSION)
+	domain, err := compute_deposit_domain(cred.chain.GENESIS_FORK_VERSION)
 	if err != nil {
 		return nil, err
 	}

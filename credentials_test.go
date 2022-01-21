@@ -26,7 +26,7 @@ func Test_seed_and_path_to_key(t *testing.T) {
 }
 
 func TestMarshalText(t *testing.T) {
-	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil)
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting)
 	assert.Nil(t, err)
 	text, err := cred.MarshalText()
 	assert.Nil(t, err)
@@ -34,14 +34,14 @@ func TestMarshalText(t *testing.T) {
 }
 
 func TestSK(t *testing.T) {
-	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil)
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting)
 	assert.Nil(t, err)
 	t.Log(cred.withdrawalSK())
 	t.Log(cred.signingSK())
 }
 
 func TestPK(t *testing.T) {
-	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil)
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting)
 	assert.Nil(t, err)
 
 	pub, err := cred.SigningPK()
@@ -57,7 +57,7 @@ func TestPK(t *testing.T) {
 
 func TestETHCrendentials(t *testing.T) {
 	account, _ := new(big.Int).SetString("0x0ce20f2274F4260eFC0D3FD4d736581C403d52Ba", 0)
-	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, account.Bytes())
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, account.Bytes(), MainnetSetting)
 	assert.Nil(t, err)
 	tp, err := cred.withdrawType()
 	assert.Nil(t, err)
@@ -82,7 +82,7 @@ func TestETHCrendentials(t *testing.T) {
 }
 
 func TestBLSCrendentials(t *testing.T) {
-	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil)
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting)
 	assert.Nil(t, err)
 	tp, err := cred.withdrawType()
 	assert.Nil(t, err)
