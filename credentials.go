@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/awnumar/memguard"
 	"github.com/herumi/bls-eth-go-binary/bls"
 )
 
@@ -70,18 +71,18 @@ func _seed_and_path_to_key(seed *big.Int, path string) (*big.Int, error) {
 	return sk, nil
 }
 
-const (
-	purpose   = "12381"
-	coin_type = "3600"
-)
-
+// Credential defines a ETH2 bls signing credential
 type Credential struct {
 	eth1_withdrawal_address []byte
-	withdrawal_sk           *big.Int
-	signing_sk              *big.Int
+	withdrawal_sk           *memguard.Enclave
+	signing_sk              *memguard.Enclave
 }
 
-func NewCredential(seed *big.Int, account uint32, hex_eth1_withdrawal_address []byte) (*Credential, error) {
+// NewCredential creates an ETH2 BLS signing credential
+func NewCredential(buf *memguard.LockedBuffer, account uint32, hex_eth1_withdrawal_address []byte) (*Credential, error) {
+	seed := new(big.Int).SetBytes(buf.Bytes())
+	defer buf.Destroy()
+
 	cred := new(Credential)
 	cred.eth1_withdrawal_address = hex_eth1_withdrawal_address
 	withdrawal_key_path := fmt.Sprintf("m/%v/%v/%d/0", purpose, coin_type, account)
@@ -89,40 +90,20 @@ func NewCredential(seed *big.Int, account uint32, hex_eth1_withdrawal_address []
 	if err != nil {
 		return nil, err
 	}
-	cred.withdrawal_sk = withdrawal_sk
+	cred.withdrawal_sk = memguard.NewEnclave([]byte(withdrawal_sk.String()))
 
 	signing_key_path := fmt.Sprintf("%s/0", withdrawal_key_path)
 	signing_sk, err := _seed_and_path_to_key(seed, signing_key_path)
 	if err != nil {
 		return nil, err
 	}
-	cred.signing_sk = signing_sk
+	cred.signing_sk = memguard.NewEnclave([]byte(signing_sk.String()))
 
 	return cred, nil
 }
 
-func (cred *Credential) WithdrawalSK() *big.Int { return cred.withdrawal_sk }
-func (cred *Credential) SigningSK() *big.Int    { return cred.signing_sk }
-
-func (cred *Credential) SigningPK() (pub []byte, err error) {
-	sec := new(bls.SecretKey)
-	err = sec.SetDecString(cred.signing_sk.Text(10))
-	if err != nil {
-		return nil, err
-	}
-
-	return sec.GetPublicKey().Serialize(), nil
-}
-
-func (cred *Credential) WithdrawalPK() (pub []byte, err error) {
-	sec := new(bls.SecretKey)
-	err = sec.SetDecString(cred.withdrawal_sk.Text(10))
-	if err != nil {
-		return nil, err
-	}
-
-	return sec.GetPublicKey().Serialize(), nil
-}
+func (cred *Credential) withdrawalSK() *memguard.Enclave { return cred.withdrawal_sk }
+func (cred *Credential) signingSK() *memguard.Enclave    { return cred.signing_sk }
 
 func (cred *Credential) withdrawPrefix() byte {
 	if cred.eth1_withdrawal_address != nil {
@@ -160,7 +141,39 @@ func (cred *Credential) depositMessage() (*DepositMessage, error) {
 	return msg, nil
 }
 
-func (cred *Credential) signedDeposit() (*DepositData, error) {
+/*******************************************************************************
+ *
+ * Public methods for credential
+ *
+ *******************************************************************************/
+// SigningPK returns public key of BLS signing account
+func (cred *Credential) SigningPK() (pub []byte, err error) {
+	sec := new(bls.SecretKey)
+	buf, err := cred.signing_sk.Open()
+	defer buf.Destroy()
+
+	err = sec.SetDecString(buf.String())
+	if err != nil {
+		return nil, err
+	}
+
+	return sec.GetPublicKey().Serialize(), nil
+}
+
+// WithdrawalPK returns public key of BLS withdrawal account
+func (cred *Credential) WithdrawalPK() (pub []byte, err error) {
+	buf, err := cred.withdrawal_sk.Open()
+	defer buf.Destroy()
+
+	sec := new(bls.SecretKey)
+	err = sec.SetDecString(buf.String())
+	if err != nil {
+		return nil, err
+	}
+
+	return sec.GetPublicKey().Serialize(), nil
+}
+func (cred *Credential) SignedDeposit() (*DepositData, error) {
 	// deposit message
 	depositMessage, err := cred.depositMessage()
 
@@ -185,8 +198,16 @@ func (cred *Credential) signedDeposit() (*DepositData, error) {
 		return nil, err
 	}
 
+	// open encalve
 	sec := new(bls.SecretKey)
-	err = sec.SetDecString(cred.signing_sk.Text(10))
+	buf, err := cred.signing_sk.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer buf.Destroy()
+
+	// sign
+	err = sec.SetDecString(buf.String())
 	if err != nil {
 		return nil, err
 	}

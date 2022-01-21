@@ -8,6 +8,11 @@ type BaseChainSetting struct {
 }
 
 const (
+	purpose   = "12381"
+	coin_type = "3600"
+)
+
+const (
 	MAINNET = "mainnet"
 	PYRMONT = "pyrmont"
 	PRATER  = "prater"

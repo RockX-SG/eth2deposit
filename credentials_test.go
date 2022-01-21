@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/awnumar/memguard"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,14 +26,14 @@ func Test_seed_and_path_to_key(t *testing.T) {
 }
 
 func TestSK(t *testing.T) {
-	cred, err := NewCredential(seed, 0, nil)
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil)
 	assert.Nil(t, err)
-	t.Log(cred.WithdrawalSK())
-	t.Log(cred.SigningSK())
+	t.Log(cred.withdrawalSK())
+	t.Log(cred.signingSK())
 }
 
 func TestPK(t *testing.T) {
-	cred, err := NewCredential(seed, 0, nil)
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil)
 	assert.Nil(t, err)
 
 	pub, err := cred.SigningPK()
@@ -48,7 +49,7 @@ func TestPK(t *testing.T) {
 
 func TestETHCrendentials(t *testing.T) {
 	account, _ := new(big.Int).SetString("0x0ce20f2274F4260eFC0D3FD4d736581C403d52Ba", 0)
-	cred, err := NewCredential(seed, 0, account.Bytes())
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, account.Bytes())
 	assert.Nil(t, err)
 	tp, err := cred.withdrawType()
 	assert.Nil(t, err)
@@ -64,7 +65,7 @@ func TestETHCrendentials(t *testing.T) {
 	assert.Nil(t, err)
 	t.Log("deposit message root:", hex.EncodeToString(root[:]))
 
-	signed, err := cred.signedDeposit()
+	signed, err := cred.SignedDeposit()
 	assert.Nil(t, err)
 	root, err = signed.HashTreeRoot()
 	assert.Nil(t, err)
@@ -73,7 +74,7 @@ func TestETHCrendentials(t *testing.T) {
 }
 
 func TestBLSCrendentials(t *testing.T) {
-	cred, err := NewCredential(seed, 0, nil)
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil)
 	assert.Nil(t, err)
 	tp, err := cred.withdrawType()
 	assert.Nil(t, err)
@@ -89,7 +90,7 @@ func TestBLSCrendentials(t *testing.T) {
 	assert.Nil(t, err)
 	t.Log("deposit message root:", hex.EncodeToString(root[:]))
 
-	signed, err := cred.signedDeposit()
+	signed, err := cred.SignedDeposit()
 	assert.Nil(t, err)
 	root, err = signed.HashTreeRoot()
 	assert.Nil(t, err)
