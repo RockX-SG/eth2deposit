@@ -39,8 +39,8 @@ func TestMarshalText(t *testing.T) {
 func TestSK(t *testing.T) {
 	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting)
 	assert.Nil(t, err)
-	t.Log(cred.withdrawalSK())
-	t.Log(cred.signingSK())
+	t.Log(cred.WithdrawalSK())
+	t.Log(cred.SigningSK())
 }
 
 func TestPK(t *testing.T) {

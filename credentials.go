@@ -134,9 +134,6 @@ func NewCredential(buf *memguard.LockedBuffer, account uint32, hex_eth1_withdraw
 	return cred, nil
 }
 
-func (cred *Credential) withdrawalSK() *memguard.Enclave { return cred.withdrawal_sk }
-func (cred *Credential) signingSK() *memguard.Enclave    { return cred.signing_sk }
-
 func (cred *Credential) withdrawPrefix() byte {
 	if cred.eth1_withdrawal_address != nil {
 		return ETH1_ADDRESS_WITHDRAWAL_PREFIX
@@ -215,7 +212,13 @@ func (cred *Credential) MarshalText() ([]byte, error) {
 	return json.Marshal([]*CompactDepositData{msg})
 }
 
-// DepositMessage retreieves deposit message
+// WithdrawalSK returns enclaved withdraw secret key
+func (cred *Credential) WithdrawalSK() *memguard.Enclave { return cred.withdrawal_sk }
+
+// SigningSK returns enclaved signing secret key
+func (cred *Credential) SigningSK() *memguard.Enclave { return cred.signing_sk }
+
+// DepositMessage retrieves deposit message
 func (cred *Credential) DepositMessage() (*DepositMessage, error) {
 	msg := new(DepositMessage)
 	pubkey, err := cred.SigningPK()
@@ -314,6 +317,7 @@ func (cred *Credential) SignedDeposit() (*DepositData, error) {
 	return depositData, nil
 }
 
+// WithdrawCredentials returns credential bytes
 func (cred *Credential) WithdrawCredentials() ([]byte, error) {
 	var withdrawal_credentials []byte
 	withdrawType, err := cred.withdrawType()
