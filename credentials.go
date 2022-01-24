@@ -174,9 +174,6 @@ func (cred *Credential) MarshalText() ([]byte, error) {
 		return nil, err
 	}
 
-	println("deposit message :", fmt.Sprintf("%+v", deposit_message))
-	println("deposit message root:", hex.EncodeToString(deposit_message_root[:]))
-
 	msg.PubKey = hex.EncodeToString(pubkey)
 	msg.WithdrawCredential = hex.EncodeToString(withdraw_credential)
 	msg.Amount = 32000000000
