@@ -213,10 +213,14 @@ func (cred *Credential) MarshalText() ([]byte, error) {
 }
 
 // WithdrawalSK returns enclaved withdraw secret key
-func (cred *Credential) WithdrawalSK() *memguard.Enclave { return cred.withdrawal_sk }
+func (cred *Credential) WithdrawalSK() (*memguard.LockedBuffer, error) {
+	return cred.withdrawal_sk.Open()
+}
 
 // SigningSK returns enclaved signing secret key
-func (cred *Credential) SigningSK() *memguard.Enclave { return cred.signing_sk }
+func (cred *Credential) SigningSK() (*memguard.LockedBuffer, error) {
+	return cred.signing_sk.Open()
+}
 
 // DepositMessage retrieves deposit message
 func (cred *Credential) DepositMessage() (*DepositMessage, error) {
