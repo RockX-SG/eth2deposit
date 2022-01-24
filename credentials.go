@@ -11,12 +11,40 @@ import (
 	"strings"
 
 	"github.com/awnumar/memguard"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/herumi/bls-eth-go-binary/bls"
 )
 
 func init() {
 	bls.Init(bls.BLS12_381)
 	bls.SetETHmode(bls.EthModeDraft07)
+}
+
+func compute_deposit_domain(fork_version [4]byte) ([]byte, error) {
+	domain_type := DOMAIN_DEPOSIT
+	fork_data_root, err := compute_deposit_fork_data_root(fork_version)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(domain_type[:], fork_data_root[:28]...), nil
+}
+
+func compute_deposit_fork_data_root(current_version [4]byte) ([]byte, error) {
+	forkData := new(ForkData)
+	forkData.CurrentVersion = current_version
+	forkData.GenesisValidatorRoot = ZERO_BYTES32
+
+	err := forkData.HashTreeRootWith(ssz.DefaultHasherPool.Get())
+	if err != nil {
+		return nil, err
+	}
+	root, err := forkData.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	return root[:], nil
 }
 
 func _path_to_nodes(path string) []uint32 {
