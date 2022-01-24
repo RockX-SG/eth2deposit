@@ -10,6 +10,9 @@ import (
 )
 
 var (
+	// menmonic of this test seed
+	// chef pepper gun wood give member possible honey exercise moment mammal party mistake hen mirror blossom color miracle gaze occur setup tiger else lift
+	seed_cred, _             = new(big.Int).SetString("22dd123e5da2306c22f3f4f063771da6933aa7235b859115fed1f658f3c7b0de9cdeea1434d181572c772dd472d194261b6a383b2be1b2ca5b3d92bfdeaefafb", 16)
 	seed, _                  = new(big.Int).SetString("c55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04", 16)
 	master_SK, _             = new(big.Int).SetString("6083874454709270928345386274498605044986640685124978867557563392430687146096", 10)
 	path                     = "m/0"
@@ -26,7 +29,7 @@ func Test_seed_and_path_to_key(t *testing.T) {
 }
 
 func TestMarshalText(t *testing.T) {
-	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting)
+	cred, err := NewCredential(memguard.NewBufferFromBytes(seed_cred.Bytes()), 0, nil, MainnetSetting)
 	assert.Nil(t, err)
 	text, err := cred.MarshalText()
 	assert.Nil(t, err)
