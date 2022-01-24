@@ -28,9 +28,13 @@ func NewMasterKey(seed [seedLength]byte) *MasterKey {
 	return mk
 }
 
-// derive the N-th id with current master key
+// DeriveChild derives crypto-strong child key
 // Approach:
-// String-> Hash(String) -> Encrypt with seed -> elliptic ScalaMult -> Hash(Point)
+// Path String->
+// 	Hash(Path String) ->
+//		Encrypt the sum with seed as private key ->
+// 			Elliptic P256 ScalaBaseMult with the cipher text ->	(irreversibility)
+//				Hash(Point.X,Y) (irreversibility)
 func (mkey *MasterKey) DeriveChild(id uint64) (*memguard.LockedBuffer, error) {
 	content := fmt.Sprintf(encTemplate, id)
 	sum := sha256.Sum256([]byte(content))
