@@ -105,8 +105,8 @@ func _seed_and_path_to_key(seed *big.Int, path string) (*big.Int, error) {
 type Credential struct {
 	chain                   BaseChainSetting
 	eth1_withdrawal_address []byte
-	withdrawal_sk           *memguard.Enclave
-	signing_sk              *memguard.Enclave
+	withdrawal_sk           *memguard.Enclave // stores based-10 string of seed key
+	signing_sk              *memguard.Enclave // stores based-10 string of seed key
 }
 
 // NewCredential creates an ETH2 BLS signing credential
@@ -212,12 +212,12 @@ func (cred *Credential) MarshalText() ([]byte, error) {
 	return json.Marshal([]*CompactDepositData{msg})
 }
 
-// WithdrawalSK returns enclaved withdraw secret key
+// WithdrawalSK returns locked withdraw secret key in 10-based string
 func (cred *Credential) WithdrawalSK() (*memguard.LockedBuffer, error) {
 	return cred.withdrawal_sk.Open()
 }
 
-// SigningSK returns enclaved signing secret key
+// SigningSK returns locked signing secret key in 10-based string
 func (cred *Credential) SigningSK() (*memguard.LockedBuffer, error) {
 	return cred.signing_sk.Open()
 }
