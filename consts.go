@@ -12,17 +12,17 @@ var (
 type WithdrawType int
 
 const (
-	INVALID_WITHDRAW        = WithdrawType(-1)
-	BLS_WITHDRAWAL          = 0
-	ETH1_ADDRESS_WITHDRAWAL = 1
+	invalidWithdrawal     = WithdrawType(-1)
+	blsWithdrawal         = 0
+	eth1AddressWithdrawal = 1
 )
 
 var (
-	ErrorWithdrawPrefix = errors.New("Invalid withdrawal_prefix")
-	ErrorWithdrawType   = errors.New("Invalid withdrawal_type")
+	errorWithdrawPrefix = errors.New("Invalid withdrawal_prefix")
+	errorWithdrawType   = errors.New("Invalid withdrawal_type")
 )
 
 var (
-	DOMAIN_DEPOSIT [4]byte = [4]byte{0x03, 0x00, 0x00, 0x00}
-	ZERO_BYTES32   [32]byte
+	domainDeposit [4]byte = [4]byte{0x03, 0x00, 0x00, 0x00}
+	zeroBytes32   [32]byte
 )

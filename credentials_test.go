@@ -64,7 +64,7 @@ func TestETHCrendentials(t *testing.T) {
 	assert.Nil(t, err)
 	tp, err := cred.withdrawType()
 	assert.Nil(t, err)
-	assert.EqualValues(t, ETH1_ADDRESS_WITHDRAWAL, tp)
+	assert.EqualValues(t, eth1AddressWithdrawal, tp)
 
 	bts, err := cred.WithdrawCredentials()
 	assert.Nil(t, err)
@@ -89,7 +89,7 @@ func TestBLSCrendentials(t *testing.T) {
 	assert.Nil(t, err)
 	tp, err := cred.withdrawType()
 	assert.Nil(t, err)
-	assert.EqualValues(t, BLS_WITHDRAWAL, tp)
+	assert.EqualValues(t, blsWithdrawal, tp)
 
 	bts, err := cred.WithdrawCredentials()
 	assert.Nil(t, err)
