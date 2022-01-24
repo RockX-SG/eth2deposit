@@ -3,14 +3,14 @@ package eth2deposit
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"encoding/hex"
 	"unsafe"
 
 	xor "github.com/templexxx/xorsimd"
 )
 
 var (
-	//IV, _ = hex.DecodeString("0x5a31313230aeB16524a01FF5597A5529A1C918A9")
-	IV = []byte{167, 79, 156, 18, 172, 27, 1, 164, 21, 242, 193, 252, 120, 230, 107, 115}
+	IV, _ = hex.DecodeString("5a31313230aeB16524a01FF5597A5529")
 )
 
 // BlockCrypt defines encryption/decryption methods for a given byte slice.
