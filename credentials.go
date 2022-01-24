@@ -87,6 +87,7 @@ func NewCredential(buf *memguard.LockedBuffer, account uint32, hex_eth1_withdraw
 	defer buf.Destroy()
 
 	cred := new(Credential)
+	cred.chain = chain
 	cred.eth1_withdrawal_address = hex_eth1_withdrawal_address
 	withdrawal_key_path := fmt.Sprintf("m/%v/%v/%d/0", purpose, coin_type, account)
 	withdrawal_sk, err := _seed_and_path_to_key(seed, withdrawal_key_path)
@@ -137,10 +138,10 @@ type CompactDepositData struct {
 	Amount             int    `json:"amount"`
 	Signature          string `json:"signature"`
 	DepositMessageRoot string `json:"deposit_message_root"`
-	DepositDataRoot    string `json:"deposit_message_root"`
+	DepositDataRoot    string `json:"deposit_data_root"`
 	ForkVersion        string `json:"fork_version"`
 	Eth2NetworkName    string `json:"eth2_network_name"`
-	DepositCliVersion  string `json:"eth2_network_name"`
+	DepositCliVersion  string `json:"deposit_cli_version"`
 }
 
 // String returns json string compatible with eth2deposit
@@ -163,15 +164,18 @@ func (cred *Credential) MarshalText() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	deposit_mesage, err := cred.DepositMessage()
+	deposit_message, err := cred.DepositMessage()
 	if err != nil {
 		return nil, err
 	}
 
-	deposit_message_root, err := deposit_mesage.HashTreeRoot()
+	deposit_message_root, err := deposit_message.HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
+
+	println("deposit message :", fmt.Sprintf("%+v", deposit_message))
+	println("deposit message root:", hex.EncodeToString(deposit_message_root[:]))
 
 	msg.PubKey = hex.EncodeToString(pubkey)
 	msg.WithdrawCredential = hex.EncodeToString(withdraw_credential)
@@ -179,6 +183,9 @@ func (cred *Credential) MarshalText() ([]byte, error) {
 	msg.Signature = hex.EncodeToString(signed_deposit.Signature[:])
 	msg.DepositMessageRoot = hex.EncodeToString(deposit_message_root[:])
 	msg.DepositDataRoot = hex.EncodeToString(signed_deposit_root[:])
+	msg.ForkVersion = hex.EncodeToString(cred.chain.GENESIS_FORK_VERSION[:])
+	msg.Eth2NetworkName = cred.chain.ETH2_NETWORK_NAME
+	msg.DepositCliVersion = "1.2.0"
 
 	return json.Marshal([]*CompactDepositData{msg})
 }
@@ -196,8 +203,8 @@ func (cred *Credential) DepositMessage() (*DepositMessage, error) {
 		return nil, err
 	}
 
-	msg.Pubkey = pubkey
-	msg.WithdrawalCredentials = withdrawCredential
+	copy(msg.Pubkey[:], pubkey)
+	copy(msg.WithdrawalCredentials[:], withdrawCredential)
 	msg.Amount = uint64(1e9 * 32)
 
 	return msg, nil
@@ -275,8 +282,8 @@ func (cred *Credential) SignedDeposit() (*DepositData, error) {
 	// deposit data
 	depositData := new(DepositData)
 	depositData.Amount = depositMessage.Amount
-	copy(depositData.WithdrawalCredentials[:], depositMessage.WithdrawalCredentials)
-	copy(depositData.Pubkey[:], depositMessage.Pubkey)
+	depositData.WithdrawalCredentials = depositMessage.WithdrawalCredentials
+	depositData.Pubkey = depositMessage.Pubkey
 	copy(depositData.Signature[:], sig.Serialize())
 
 	return depositData, nil

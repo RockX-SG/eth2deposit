@@ -1,5 +1,7 @@
 package eth2deposit
 
+import ssz "github.com/ferranbt/fastssz"
+
 type SigningData struct {
 	ObjectRoot [32]byte `json:"current_version" ssz-size:"32"`
 	Domain     [32]byte `json:"domain" ssz-size:"32"`
@@ -11,9 +13,9 @@ type ForkData struct {
 }
 
 type DepositMessage struct {
-	Pubkey                []byte `json:"pubkey" ssz-size:"48"`
-	WithdrawalCredentials []byte `json:"withdrawal_credentials" ssz-size:"32"`
-	Amount                uint64 `json:"amount"`
+	Pubkey                [48]byte `json:"pubkey" ssz-size:"48"`
+	WithdrawalCredentials [32]byte `json:"withdrawal_credentials" ssz-size:"32"`
+	Amount                uint64   `json:"amount"`
 }
 type DepositData struct {
 	Pubkey                [48]byte `json:"pubkey" ssz-size:"48"`
@@ -38,6 +40,10 @@ func compute_deposit_fork_data_root(current_version [4]byte) ([]byte, error) {
 	forkData.CurrentVersion = current_version
 	forkData.GenesisValidatorRoot = ZERO_BYTES32
 
+	err := forkData.HashTreeRootWith(ssz.DefaultHasherPool.Get())
+	if err != nil {
+		return nil, err
+	}
 	root, err := forkData.HashTreeRoot()
 	if err != nil {
 		return nil, err
