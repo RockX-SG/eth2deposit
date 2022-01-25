@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	pbkdf2_salt = "dc7b47c157efcef2170669a3b5386b96550cdd0db5c28bb4cbdbba79c0196f0c"
-	seedLength  = 32
+	SeedLength  = 32
 	encTemplate = "rockx.com/eth2/key_id/%v"
 )
 
@@ -22,7 +21,7 @@ type MasterKey struct {
 }
 
 // NewMasterKey creates an encalved key
-func NewMasterKey(seed [seedLength]byte) *MasterKey {
+func NewMasterKey(seed [SeedLength]byte) *MasterKey {
 	mk := new(MasterKey)
 	mk.enclave = memguard.NewEnclave(seed[:])
 	return mk
