@@ -1,4 +1,4 @@
-module github.com/xtaci/eth2deposit
+module github.com/RockX-SG/eth2deposit
 
 go 1.17
 
