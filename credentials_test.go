@@ -33,7 +33,19 @@ func TestMarshalText(t *testing.T) {
 	assert.Nil(t, err)
 	text, err := cred.MarshalText()
 	assert.Nil(t, err)
-	t.Log(string(text))
+	t.Log("mainnet:", string(text))
+
+	cred, err = NewCredential(memguard.NewBufferFromBytes(seed_cred.Bytes()), 0, nil, PyrmontSetting)
+	assert.Nil(t, err)
+	text, err = cred.MarshalText()
+	assert.Nil(t, err)
+	t.Log("pyrmont:", string(text))
+
+	cred, err = NewCredential(memguard.NewBufferFromBytes(seed_cred.Bytes()), 0, nil, PraterSetting)
+	assert.Nil(t, err)
+	text, err = cred.MarshalText()
+	assert.Nil(t, err)
+	t.Log("prater:", string(text))
 }
 
 func TestSK(t *testing.T) {
