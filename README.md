@@ -1,5 +1,5 @@
-[1]: https://godoc.org/github.com/xtaci/eth2deposit?status.svg
-[2]: https://pkg.go.dev/github.com/xtaci/eth2deposit
+[1]: https://godoc.org/github.com/RockX-SG/eth2deposit?status.svg
+[2]: https://pkg.go.dev/github.com/RockX-SG/eth2deposit
 [3]: https://img.shields.io/badge/license-MIT-blue.svg
 [4]: LICENSE
 
@@ -16,7 +16,7 @@ A Golang library for runtime ETH2 staking
 ## Installation
 
 ```
-$ go get github.com/xtaci/eth2deposit
+$ go get github.com/RockX-SG/eth2deposit
 ```
 
 API is experimental and may have unstable changes. You should pin a version. 
