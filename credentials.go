@@ -136,16 +136,16 @@ func NewCredential(buf *memguard.LockedBuffer, account uint32, hex_eth1_withdraw
 
 func (cred *Credential) withdrawPrefix() byte {
 	if cred.eth1_withdrawal_address != nil {
-		return ETH1_ADDRESS_WITHDRAWAL_PREFIX
+		return eth1AddressWithdrawalPrefix
 	}
-	return BLS_WITHDRAWAL_PREFIX
+	return blsWithdrawalPrefix
 }
 
 func (cred *Credential) withdrawType() (WithdrawType, error) {
 	prefix := cred.withdrawPrefix()
-	if prefix == BLS_WITHDRAWAL_PREFIX {
+	if prefix == blsWithdrawalPrefix {
 		return blsWithdrawal, nil
-	} else if prefix == ETH1_ADDRESS_WITHDRAWAL_PREFIX {
+	} else if prefix == eth1AddressWithdrawalPrefix {
 		return eth1AddressWithdrawal, nil
 	}
 	return invalidWithdrawal, errorWithdrawPrefix
@@ -330,7 +330,7 @@ func (cred *Credential) WithdrawCredentials() ([]byte, error) {
 	}
 
 	if withdrawType == blsWithdrawal {
-		withdrawal_credentials = append(withdrawal_credentials, BLS_WITHDRAWAL_PREFIX)
+		withdrawal_credentials = append(withdrawal_credentials, blsWithdrawalPrefix)
 		pub, err := cred.WithdrawalPK()
 		if err != nil {
 			return nil, err
@@ -338,7 +338,7 @@ func (cred *Credential) WithdrawCredentials() ([]byte, error) {
 		sum := sha256.Sum256(pub)
 		withdrawal_credentials = append(withdrawal_credentials, sum[1:]...)
 	} else if withdrawType == eth1AddressWithdrawal && cred.eth1_withdrawal_address != nil {
-		withdrawal_credentials = append(withdrawal_credentials, ETH1_ADDRESS_WITHDRAWAL_PREFIX)
+		withdrawal_credentials = append(withdrawal_credentials, eth1AddressWithdrawalPrefix)
 		withdrawal_credentials = append(withdrawal_credentials, make([]byte, 11)...)
 		withdrawal_credentials = append(withdrawal_credentials, cred.eth1_withdrawal_address...)
 	} else {

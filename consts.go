@@ -5,8 +5,8 @@ import (
 )
 
 var (
-	BLS_WITHDRAWAL_PREFIX          = byte(0x00)
-	ETH1_ADDRESS_WITHDRAWAL_PREFIX = byte(0x01)
+	blsWithdrawalPrefix         = byte(0x00)
+	eth1AddressWithdrawalPrefix = byte(0x01)
 )
 
 type WithdrawType int
