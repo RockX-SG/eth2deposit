@@ -19,6 +19,13 @@ func TestMasterKey(t *testing.T) {
 		buf, err := master.DeriveChild(uint64(i))
 		assert.Nil(t, err)
 		t.Log("child", i, hex.EncodeToString(buf.Bytes()))
+
+		cred, err := NewCredential(buf, 0, nil, MainnetSetting)
+		assert.Nil(t, err)
+		text, err := cred.MarshalText()
+		assert.Nil(t, err)
+		t.Log("mainnet:", string(text))
+
 		buf.Destroy()
 	}
 }
