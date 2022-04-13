@@ -9,7 +9,7 @@ import (
 )
 
 func TestMasterKey(t *testing.T) {
-	account, _ := new(big.Int).SetString("0x0ce20f2274F4260eFC0D3FD4d736581C403d52Ba", 0)
+	account, _ := new(big.Int).SetString("0x0ce21f2374F4568eFC0D3FD4d736581C403d52Ba", 0)
 	var masterKey [32]byte
 	copy(masterKey[:], account.Bytes())
 	master := NewMasterKey(masterKey)
@@ -25,6 +25,14 @@ func TestMasterKey(t *testing.T) {
 		text, err := cred.MarshalText()
 		assert.Nil(t, err)
 		t.Log("mainnet:", string(text))
+
+		buf, err = master.DeriveChild(uint64(i))
+		assert.Nil(t, err)
+		cred, err = NewCredential(buf, 0, nil, PyrmontSetting)
+		assert.Nil(t, err)
+		text, err = cred.MarshalText()
+		assert.Nil(t, err)
+		t.Log("pyrmont:", string(text))
 
 		buf.Destroy()
 	}
