@@ -33,6 +33,6 @@ func init() {
 	PyrmontSetting.ETH2_NETWORK_NAME = PYRMONT
 	binary.BigEndian.PutUint32(PyrmontSetting.GENESIS_FORK_VERSION[:], 0x00002009)
 	// Eth2 testnet (spec v1.0.1)
-	PyrmontSetting.ETH2_NETWORK_NAME = PRATER
+	PraterSetting.ETH2_NETWORK_NAME = PRATER
 	binary.BigEndian.PutUint32(PraterSetting.GENESIS_FORK_VERSION[:], 0x00001020)
 }
