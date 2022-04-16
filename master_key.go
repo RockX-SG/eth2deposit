@@ -1,9 +1,12 @@
 package eth2deposit
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -13,6 +16,10 @@ import (
 const (
 	SeedLength  = 32
 	encTemplate = "rockx.com/key_derive/%v"
+)
+
+var (
+	IV, _ = hex.DecodeString("5a31313230aeB16524a01FF5597A5529")
 )
 
 // MasterKey defines an enclaved master key for offering online service
@@ -68,11 +75,12 @@ func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32
 	sum := sha256.Sum256([]byte(content))
 
 	// encrypt
-	aesBlock, err := NewAESBlockCrypt(parentKey.Bytes())
+	block, err := aes.NewCipher(parentKey.Bytes())
 	if err != nil {
 		return nil, err
 	}
-	aesBlock.Encrypt(sum[:], sum[:])
+	stream := cipher.NewCFBEncrypter(block, IV)
+	stream.XORKeyStream(sum[:], sum[:])
 
 	//  calc Public Key
 	var priv ecdsa.PrivateKey
