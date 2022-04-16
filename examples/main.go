@@ -20,7 +20,7 @@ func main() {
 
 	// create master key and dervie 100th child key
 	masterKey := eth2deposit.NewMasterKey(seed)
-	lockedBuffer, err := masterKey.DeriveChild(100)
+	lockedBuffer, err := masterKey.DeriveChild("m/100")
 	if err != nil {
 		panic(err)
 	}
