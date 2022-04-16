@@ -68,7 +68,7 @@ func _path_to_nodes(path string) ([]uint32, error) {
 	for i := 1; i < len(indices); i++ {
 		d, err := strconv.ParseUint(indices[i], 10, 32)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		indicesList = append(indicesList, uint32(d))
