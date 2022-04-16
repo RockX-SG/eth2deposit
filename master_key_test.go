@@ -2,6 +2,7 @@ package eth2deposit
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -16,7 +17,7 @@ func TestMasterKey(t *testing.T) {
 	assert.NotNil(t, master)
 
 	for i := 0; i < 128; i++ {
-		buf, err := master.DeriveChild(uint64(i))
+		buf, err := master.DeriveChild(fmt.Sprintf("m/%v", i))
 		assert.Nil(t, err)
 		t.Log("child", i, hex.EncodeToString(buf.Bytes()))
 
@@ -26,7 +27,7 @@ func TestMasterKey(t *testing.T) {
 		assert.Nil(t, err)
 		t.Log("mainnet:", string(text))
 
-		buf, err = master.DeriveChild(uint64(i))
+		buf, err = master.DeriveChild(fmt.Sprintf("m/%v", i))
 		assert.Nil(t, err)
 		cred, err = NewCredential(buf, 0, nil, PyrmontSetting)
 		assert.Nil(t, err)

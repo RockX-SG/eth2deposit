@@ -31,24 +31,41 @@ func NewMasterKey(seed [SeedLength]byte) *MasterKey {
 //
 // Approach:
 //
-// 	Path String->
-// 		Hash(Path String) ->
-//			Encrypt the sum with seed as private key ->
-// 				Elliptic P256 ScalaBaseMult with the cipher text ->	(irreversibility)
-//					Hash(Point.X,Y) (irreversibility)
-func (mkey *MasterKey) DeriveChild(id uint64) (*memguard.LockedBuffer, error) {
-	content := fmt.Sprintf(encTemplate, id)
-	sum := sha256.Sum256([]byte(content))
+// For Each Level of Subkey Generation:
+// 	keyString := rockx.com/eth/key_id/%v(string)->
+// 	h := Hash(keyString) ->
+//  secret := encrypt(parentKey,h)
+// 	pubkey := p256.ScalaBaseMult(secret)
+//	childKey := hash(pubkey)
+func (mkey *MasterKey) DeriveChild(path string) (*memguard.LockedBuffer, error) {
+	nodes := _path_to_nodes(path)
 
 	// open master key in enclave
 	b, err := mkey.enclave.Open()
 	if err != nil {
 		return nil, err
 	}
-	defer b.Destroy()
+
+	// recursively locate to subkey
+	subkey := b
+	for k := range nodes {
+		subkey, err = mkey._derive_child(subkey, nodes[k])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return subkey, nil
+}
+
+func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32) (*memguard.LockedBuffer, error) {
+	defer parentKey.Destroy()
+	// path string
+	content := fmt.Sprintf(encTemplate, id)
+	sum := sha256.Sum256([]byte(content))
 
 	// encrypt
-	aesBlock, err := NewAESBlockCrypt(b.Bytes())
+	aesBlock, err := NewAESBlockCrypt(parentKey.Bytes())
 	if err != nil {
 		return nil, err
 	}
