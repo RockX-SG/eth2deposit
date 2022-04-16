@@ -47,21 +47,21 @@ func compute_deposit_fork_data_root(current_version [4]byte) ([]byte, error) {
 	return root[:], nil
 }
 
-func _path_to_nodes(path string) []uint32 {
+func _path_to_nodes(path string) ([]uint32, error) {
 	path = strings.ReplaceAll(path, " ", "")
 
 	matched, err := regexp.MatchString("[m1234567890/]", path)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if !matched {
-		panic(fmt.Sprint("Invalid path:", path))
+		return nil, fmt.Errorf("Invalid path:%v", path)
 	}
 
 	indices := strings.Split(path, "/")
 	if indices[0] != "m" {
-		panic(fmt.Sprint("The first character of path should be `m`. Got", indices[0]))
+		return nil, fmt.Errorf("The first character of path should be `m`. Got %v", indices[0])
 	}
 
 	var indicesList []uint32
@@ -74,8 +74,7 @@ func _path_to_nodes(path string) []uint32 {
 		indicesList = append(indicesList, uint32(d))
 	}
 
-	return indicesList
-
+	return indicesList, nil
 }
 
 func _seed_and_path_to_key(seed *big.Int, path string) (*big.Int, error) {
@@ -91,7 +90,11 @@ func _seed_and_path_to_key(seed *big.Int, path string) (*big.Int, error) {
 		return nil, err
 	}
 
-	nodes := _path_to_nodes(path)
+	nodes, err := _path_to_nodes(path)
+	if err != nil {
+		return nil, err
+	}
+
 	for k := range nodes {
 		sk, err = _derive_child_SK(sk, nodes[k])
 		if err != nil {

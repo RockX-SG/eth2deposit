@@ -38,7 +38,10 @@ func NewMasterKey(seed [SeedLength]byte) *MasterKey {
 // 	pubkey := p256.ScalaBaseMult(secret)
 //	childKey := hash(pubkey)
 func (mkey *MasterKey) DeriveChild(path string) (*memguard.LockedBuffer, error) {
-	nodes := _path_to_nodes(path)
+	nodes, err := _path_to_nodes(path)
+	if err != nil {
+		return nil, err
+	}
 
 	// open master key in enclave
 	b, err := mkey.enclave.Open()
