@@ -12,7 +12,7 @@ import (
 
 const (
 	SeedLength  = 32
-	encTemplate = "rockx.com/eth2/key_id/%v"
+	encTemplate = "rockx.com/key_derive/%v"
 )
 
 // MasterKey defines an enclaved master key for offering online service
