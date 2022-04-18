@@ -109,5 +109,11 @@ func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32
 	h.Write(tmp)
 	defer wipeBig(Y)
 
-	return memguard.NewBufferFromBytes(h.Sum(nil)), nil
+	// generate child key
+	derivedKey := new(big.Int).SetBytes(h.Sum(nil))
+	derivedKey.Mod(derivedKey, mkey.N)
+	derivedKey.Add(derivedKey, one)
+	defer wipeBig(derivedKey)
+
+	return memguard.NewBufferFromBytes(derivedKey.Bytes()), nil
 }
