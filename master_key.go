@@ -3,12 +3,12 @@ package eth2deposit
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 
+	hmac "github.com/RockX-SG/eth2deposit/hmac"
 	"github.com/awnumar/memguard"
 )
 
@@ -75,15 +75,20 @@ func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32
 	mac := hmac.New(sha256.New, parentKey.Bytes())
 	mac.Write([]byte(message))
 	sum := mac.Sum(nil)
+	defer mac.Reset()
+	defer mac.Wipe()
 
 	//  ecc public key
 	var priv ecdsa.PrivateKey
 	priv.Curve = elliptic.P256()
 	priv.D = new(big.Int).SetBytes(sum[:])
 	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(priv.D.Bytes())
+	defer priv.D.SetString("0", 10)
 
 	// dervied seed from (X,Y)
 	h := sha256.New()
+	defer h.Reset()
+
 	tmp := make([]byte, 32)
 	priv.PublicKey.X.FillBytes(tmp)
 	h.Write(tmp)
