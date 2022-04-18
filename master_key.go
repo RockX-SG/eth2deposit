@@ -4,6 +4,7 @@ import (
 	"crypto/elliptic"
 	"crypto/sha256"
 	"fmt"
+	"math/big"
 	"runtime"
 
 	hmac "github.com/RockX-SG/eth2deposit/hmac"
@@ -15,10 +16,15 @@ const (
 	encTemplate = "rockx.com/key_derive/%v"
 )
 
+var (
+	one = new(big.Int).SetInt64(1)
+)
+
 // MasterKey defines an enclaved master key for offering online service
 type MasterKey struct {
 	enclave *memguard.Enclave
 	curve   elliptic.Curve
+	N       *big.Int
 }
 
 // NewMasterKey creates an encalved key
@@ -26,6 +32,7 @@ func NewMasterKey(seed [SeedLength]byte) *MasterKey {
 	mk := new(MasterKey)
 	mk.enclave = memguard.NewEnclave(seed[:])
 	mk.curve = elliptic.P256()
+	mk.N = new(big.Int).Sub(mk.curve.Params().N, one)
 	return mk
 }
 
@@ -76,8 +83,16 @@ func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32
 	defer mac.Wipe()
 	defer wipeSlice(sum)
 
-	// priv -> pub
-	X, Y := mkey.curve.ScalarBaseMult(sum[:])
+	// generate private key
+	k := new(big.Int).SetBytes(sum[:])
+	k.Mod(k, mkey.N)
+	k.Add(k, one)
+	defer wipeBig(k)
+
+	// private key to public key
+	kBytes := k.Bytes()
+	defer wipeSlice(kBytes)
+	X, Y := mkey.curve.ScalarBaseMult(kBytes)
 
 	// hash(pub)
 	h := sha256.New()
