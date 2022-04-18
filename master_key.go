@@ -9,6 +9,7 @@ import (
 
 	hmac "github.com/RockX-SG/eth2deposit/hmac"
 	"github.com/awnumar/memguard"
+	"github.com/btcsuite/btcd/btcec"
 )
 
 const (
@@ -31,7 +32,7 @@ type MasterKey struct {
 func NewMasterKey(seed [SeedLength]byte) *MasterKey {
 	mk := new(MasterKey)
 	mk.enclave = memguard.NewEnclave(seed[:])
-	mk.curve = elliptic.P256()
+	mk.curve = btcec.S256()
 	mk.N = new(big.Int).Sub(mk.curve.Params().N, one)
 	return mk
 }
