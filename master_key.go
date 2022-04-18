@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"runtime"
 
 	hmac "github.com/RockX-SG/eth2deposit/hmac"
 	"github.com/awnumar/memguard"
@@ -42,6 +43,7 @@ func NewMasterKey(seed [SeedLength]byte) *MasterKey {
 // 	pubkey := p256.ScalaBaseMult(secret)
 //	childKey := hash(pubkey)
 func (mkey *MasterKey) DeriveChild(path string) (*memguard.LockedBuffer, error) {
+	defer runtime.GC()
 	nodes, err := _path_to_nodes(path)
 	if err != nil {
 		return nil, err
@@ -83,7 +85,7 @@ func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32
 	priv.Curve = elliptic.P256()
 	priv.D = new(big.Int).SetBytes(sum[:])
 	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(priv.D.Bytes())
-	defer priv.D.SetString("0", 10)
+	defer priv.D.SetInt64(0)
 
 	// dervied seed from (X,Y)
 	h := sha256.New()
@@ -92,10 +94,12 @@ func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32
 	tmp := make([]byte, 32)
 	priv.PublicKey.X.FillBytes(tmp)
 	h.Write(tmp)
+	defer priv.PublicKey.X.SetInt64(0)
 
 	tmp = make([]byte, 32)
 	priv.PublicKey.Y.FillBytes(tmp)
 	h.Write(tmp)
+	defer priv.PublicKey.Y.SetInt64(0)
 
 	return memguard.NewBufferFromBytes(h.Sum(nil)), nil
 }
