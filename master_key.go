@@ -38,9 +38,7 @@ func NewMasterKey(seed [SeedLength]byte) *MasterKey {
 // Approach:
 //
 // For Each Level of Subkey Generation:
-// 	keyString := rockx.com/eth/key_id/%v(string)->
-// 	h := Hash(keyString) ->
-//  secret := encrypt(parentKey,h)
+// 	secret := hmac(rockx.com/eth/key_id/%v(string), parentKey)
 // 	pubkey := p256.ScalaBaseMult(secret)
 //	childKey := hash(pubkey)
 func (mkey *MasterKey) DeriveChild(path string) (*memguard.LockedBuffer, error) {
