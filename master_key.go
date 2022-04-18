@@ -99,15 +99,17 @@ func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32
 	h := sha256.New()
 	defer h.Reset()
 
-	tmp := make([]byte, 32)
-	X.FillBytes(tmp)
-	h.Write(tmp)
+	tmpX := make([]byte, 32)
+	X.FillBytes(tmpX)
+	h.Write(tmpX)
 	defer wipeBig(X)
+	defer wipeSlice(tmpX)
 
-	tmp = make([]byte, 32)
-	Y.FillBytes(tmp)
-	h.Write(tmp)
+	tmpY := make([]byte, 32)
+	Y.FillBytes(tmpY)
+	h.Write(tmpY)
 	defer wipeBig(Y)
+	defer wipeSlice(tmpY)
 
 	// generate child key
 	derivedKey := new(big.Int).SetBytes(h.Sum(nil))
