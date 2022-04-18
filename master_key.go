@@ -1,11 +1,9 @@
 package eth2deposit
 
 import (
-	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/sha256"
 	"fmt"
-	"math/big"
 	"runtime"
 
 	hmac "github.com/RockX-SG/eth2deposit/hmac"
@@ -20,12 +18,14 @@ const (
 // MasterKey defines an enclaved master key for offering online service
 type MasterKey struct {
 	enclave *memguard.Enclave
+	curve   elliptic.Curve
 }
 
 // NewMasterKey creates an encalved key
 func NewMasterKey(seed [SeedLength]byte) *MasterKey {
 	mk := new(MasterKey)
 	mk.enclave = memguard.NewEnclave(seed[:])
+	mk.curve = elliptic.P256()
 	return mk
 }
 
@@ -74,27 +74,24 @@ func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32
 	sum := mac.Sum(nil)
 	defer mac.Reset()
 	defer mac.Wipe()
+	defer wipeSlice(sum)
 
-	//  ecc public key
-	var priv ecdsa.PrivateKey
-	priv.Curve = elliptic.P256()
-	priv.D = new(big.Int).SetBytes(sum[:])
-	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(priv.D.Bytes())
-	defer wipeBig(priv.D)
+	// priv -> pub
+	X, Y := mkey.curve.ScalarBaseMult(sum[:])
 
-	// dervied seed from (X,Y)
+	// hash(pub)
 	h := sha256.New()
 	defer h.Reset()
 
 	tmp := make([]byte, 32)
-	priv.PublicKey.X.FillBytes(tmp)
+	X.FillBytes(tmp)
 	h.Write(tmp)
-	defer wipeBig(priv.PublicKey.X)
+	defer wipeBig(X)
 
 	tmp = make([]byte, 32)
-	priv.PublicKey.Y.FillBytes(tmp)
+	Y.FillBytes(tmp)
 	h.Write(tmp)
-	defer wipeBig(priv.PublicKey.Y)
+	defer wipeBig(Y)
 
 	return memguard.NewBufferFromBytes(h.Sum(nil)), nil
 }

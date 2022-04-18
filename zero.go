@@ -10,3 +10,10 @@ func wipeBig(x *big.Int) {
 	}
 	x.SetInt64(0)
 }
+
+// wipeSlice wipes byte slice
+func wipeSlice(x []byte) {
+	for i := range x {
+		x[i] = 0
+	}
+}
