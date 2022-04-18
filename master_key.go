@@ -85,7 +85,7 @@ func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32
 	priv.Curve = elliptic.P256()
 	priv.D = new(big.Int).SetBytes(sum[:])
 	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(priv.D.Bytes())
-	defer Wipe(priv.D)
+	defer wipeBig(priv.D)
 
 	// dervied seed from (X,Y)
 	h := sha256.New()
@@ -94,12 +94,12 @@ func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32
 	tmp := make([]byte, 32)
 	priv.PublicKey.X.FillBytes(tmp)
 	h.Write(tmp)
-	defer Wipe(priv.PublicKey.X)
+	defer wipeBig(priv.PublicKey.X)
 
 	tmp = make([]byte, 32)
 	priv.PublicKey.Y.FillBytes(tmp)
 	h.Write(tmp)
-	defer Wipe(priv.PublicKey.Y)
+	defer wipeBig(priv.PublicKey.Y)
 
 	return memguard.NewBufferFromBytes(h.Sum(nil)), nil
 }
