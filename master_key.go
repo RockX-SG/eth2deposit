@@ -1,10 +1,9 @@
 package eth2deposit
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -72,17 +71,12 @@ func (mkey *MasterKey) DeriveChild(path string) (*memguard.LockedBuffer, error) 
 func (mkey *MasterKey) _derive_child(parentKey *memguard.LockedBuffer, id uint32) (*memguard.LockedBuffer, error) {
 	defer parentKey.Destroy()
 	// path string
-	content := fmt.Sprintf(encTemplate, id)
-	sum := sha256.Sum256([]byte(content))
+	message := fmt.Sprintf(encTemplate, id)
 
-	// encrypt
-	// BUG(r): the parent key in cipher.Block should be erased someway
-	block, err := aes.NewCipher(parentKey.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	stream := cipher.NewCFBEncrypter(block, IV)
-	stream.XORKeyStream(sum[:], sum[:])
+	// hmac-sha256
+	mac := hmac.New(sha256.New, parentKey.Bytes())
+	mac.Write([]byte(message))
+	sum := mac.Sum(nil)
 
 	//  ecc public key
 	var priv ecdsa.PrivateKey
