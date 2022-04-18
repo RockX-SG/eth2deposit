@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 	"runtime"
@@ -16,10 +15,6 @@ import (
 const (
 	SeedLength  = 32
 	encTemplate = "rockx.com/key_derive/%v"
-)
-
-var (
-	IV, _ = hex.DecodeString("5a31313230aeB16524a01FF5597A5529")
 )
 
 // MasterKey defines an enclaved master key for offering online service
