@@ -9,7 +9,7 @@ import (
 
 	hmac "github.com/RockX-SG/eth2deposit/hmac"
 	"github.com/awnumar/memguard"
-	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/btcec/v2"
 )
 
 const (
