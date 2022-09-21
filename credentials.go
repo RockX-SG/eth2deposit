@@ -140,7 +140,7 @@ type CompactDepositData struct {
 	DepositMessageRoot string `json:"deposit_message_root"`
 	DepositDataRoot    string `json:"deposit_data_root"`
 	ForkVersion        string `json:"fork_version"`
-	Eth2NetworkName    string `json:"eth2_network_name"`
+	Eth2NetworkName    string `json:"network_name"`
 	DepositCliVersion  string `json:"deposit_cli_version"`
 }
 
@@ -182,7 +182,7 @@ func (cred *Credential) MarshalText() ([]byte, error) {
 	msg.DepositDataRoot = hex.EncodeToString(signed_deposit_root[:])
 	msg.ForkVersion = hex.EncodeToString(cred.chain.GENESIS_FORK_VERSION[:])
 	msg.Eth2NetworkName = cred.chain.ETH2_NETWORK_NAME
-	msg.DepositCliVersion = "1.2.0"
+	msg.DepositCliVersion = "2.3.0"
 
 	return json.Marshal([]*CompactDepositData{msg})
 }
