@@ -16,12 +16,14 @@ const (
 	MAINNET = "mainnet"
 	PYRMONT = "pyrmont"
 	PRATER  = "prater"
+	HOLESKY = "holesky"
 )
 
 var (
 	MainnetSetting BaseChainSetting
 	PyrmontSetting BaseChainSetting
 	PraterSetting  BaseChainSetting
+	HoleskySetting BaseChainSetting
 )
 
 func init() {
@@ -35,4 +37,8 @@ func init() {
 	// Eth2 testnet (spec v1.0.1)
 	PraterSetting.ETH2_NETWORK_NAME = PRATER
 	binary.BigEndian.PutUint32(PraterSetting.GENESIS_FORK_VERSION[:], 0x00001020)
+
+	// Holesky setting
+	HoleskySetting.ETH2_NETWORK_NAME = HOLESKY
+	binary.BigEndian.PutUint32(HoleskySetting.GENESIS_FORK_VERSION[:], 0x01017000)
 }

@@ -29,11 +29,18 @@ func TestMasterKey(t *testing.T) {
 
 		buf, err = master.DeriveChild(fmt.Sprintf("m/%v", i))
 		assert.Nil(t, err)
+
 		cred, err = NewCredential(buf, 0, nil, PyrmontSetting)
 		assert.Nil(t, err)
 		text, err = cred.MarshalText()
 		assert.Nil(t, err)
 		t.Log("pyrmont:", string(text))
+
+		cred, err = NewCredential(buf, 0, nil, HoleskySetting)
+		assert.Nil(t, err)
+		text, err = cred.MarshalText()
+		assert.Nil(t, err)
+		t.Log("holesky:", string(text))
 
 		buf.Destroy()
 	}
