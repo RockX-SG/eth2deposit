@@ -7,6 +7,8 @@ type BaseChainSetting struct {
 	GENESIS_FORK_VERSION [4]byte
 }
 
+const DEPOSIT_CLI_VERSION = "2.7.0"
+
 const (
 	purpose   = "12381"
 	coin_type = "3600"

@@ -182,7 +182,7 @@ func (cred *Credential) MarshalText() ([]byte, error) {
 	msg.DepositDataRoot = hex.EncodeToString(signed_deposit_root[:])
 	msg.ForkVersion = hex.EncodeToString(cred.chain.GENESIS_FORK_VERSION[:])
 	msg.Eth2NetworkName = cred.chain.ETH2_NETWORK_NAME
-	msg.DepositCliVersion = "2.3.0"
+	msg.DepositCliVersion = DEPOSIT_CLI_VERSION
 
 	return json.Marshal([]*CompactDepositData{msg})
 }
