@@ -42,6 +42,12 @@ func TestMasterKey(t *testing.T) {
 		assert.Nil(t, err)
 		t.Log("holesky:", string(text))
 
+		cred, err = NewCredential(buf, 0, nil, HoodiSetting)
+		assert.Nil(t, err)
+		text, err = cred.MarshalText()
+		assert.Nil(t, err)
+		t.Log("hoodi:", string(text))
+
 		buf.Destroy()
 	}
 }

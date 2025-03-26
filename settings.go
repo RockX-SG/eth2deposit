@@ -7,7 +7,7 @@ type BaseChainSetting struct {
 	GENESIS_FORK_VERSION [4]byte
 }
 
-const DEPOSIT_CLI_VERSION = "2.7.0"
+const DEPOSIT_CLI_VERSION = "2.8.0"
 
 const (
 	purpose   = "12381"
@@ -19,6 +19,7 @@ const (
 	PYRMONT = "pyrmont"
 	PRATER  = "prater"
 	HOLESKY = "holesky"
+	HOODI   = "hoodi"
 )
 
 var (
@@ -26,6 +27,7 @@ var (
 	PyrmontSetting BaseChainSetting
 	PraterSetting  BaseChainSetting
 	HoleskySetting BaseChainSetting
+	HoodiSetting   BaseChainSetting
 )
 
 func init() {
@@ -43,4 +45,8 @@ func init() {
 	// Holesky setting
 	HoleskySetting.ETH2_NETWORK_NAME = HOLESKY
 	binary.BigEndian.PutUint32(HoleskySetting.GENESIS_FORK_VERSION[:], 0x01017000)
+
+	// Hoodi setting
+	HoodiSetting.ETH2_NETWORK_NAME = HOODI
+	binary.BigEndian.PutUint32(HoodiSetting.GENESIS_FORK_VERSION[:], 0x10000910)
 }
