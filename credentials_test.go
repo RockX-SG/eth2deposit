@@ -48,6 +48,26 @@ func TestMarshalText(t *testing.T) {
 	t.Log("prater:", string(text))
 }
 
+func TestMarshalTextV2(t *testing.T) {
+	cred, err := NewCredentialV2(memguard.NewBufferFromBytes(seed_cred.Bytes()), 0, nil, MainnetSetting, 64)
+	assert.Nil(t, err)
+	text, err := cred.MarshalText()
+	assert.Nil(t, err)
+	t.Log("mainnet:", string(text))
+
+	cred, err = NewCredentialV2(memguard.NewBufferFromBytes(seed_cred.Bytes()), 0, nil, PyrmontSetting, 64)
+	assert.Nil(t, err)
+	text, err = cred.MarshalText()
+	assert.Nil(t, err)
+	t.Log("pyrmont:", string(text))
+
+	cred, err = NewCredentialV2(memguard.NewBufferFromBytes(seed_cred.Bytes()), 0, nil, PraterSetting, 64)
+	assert.Nil(t, err)
+	text, err = cred.MarshalText()
+	assert.Nil(t, err)
+	t.Log("prater:", string(text))
+}
+
 func TestSK(t *testing.T) {
 	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting)
 	assert.Nil(t, err)
@@ -55,8 +75,30 @@ func TestSK(t *testing.T) {
 	t.Log(cred.SigningSK())
 }
 
+func TestSKV2(t *testing.T) {
+	cred, err := NewCredentialV2(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting, 64)
+	assert.Nil(t, err)
+	t.Log(cred.WithdrawalSK())
+	t.Log(cred.SigningSK())
+}
+
 func TestPK(t *testing.T) {
 	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting)
+	assert.Nil(t, err)
+
+	pub, err := cred.SigningPK()
+	assert.Nil(t, err)
+	t.Log("signing public key:", hex.EncodeToString(pub))
+
+	pub, err = cred.WithdrawalPK()
+	assert.Nil(t, err)
+	t.Log("withdrawal public key:", hex.EncodeToString(pub))
+	//	bts, err := pk.MarshalBinary()
+	//	assert.Nil(t, err)
+}
+
+func TestPKV2(t *testing.T) {
+	cred, err := NewCredentialV2(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting, 64)
 	assert.Nil(t, err)
 
 	pub, err := cred.SigningPK()
@@ -96,8 +138,59 @@ func TestETHCrendentials(t *testing.T) {
 	t.Log("signature:", hex.EncodeToString(signed.Signature[:]))
 }
 
+func TestETHCrendentialsV2(t *testing.T) {
+	account, _ := new(big.Int).SetString("0x0ce20f2274F4260eFC0D3FD4d736581C403d52Ba", 0)
+	cred, err := NewCredentialV2(memguard.NewBufferFromBytes(seed.Bytes()), 0, account.Bytes(), MainnetSetting, 64)
+	assert.Nil(t, err)
+	tp, err := cred.withdrawType()
+	assert.Nil(t, err)
+	assert.EqualValues(t, eth1AddressWithdrawalCompound, tp)
+
+	bts, err := cred.WithdrawCredentials()
+	assert.Nil(t, err)
+	t.Log("eth 1 withdraw crendentials:", hex.EncodeToString(bts))
+
+	msg, err := cred.DepositMessage()
+	assert.Nil(t, err)
+	root, err := msg.HashTreeRoot()
+	assert.Nil(t, err)
+	t.Log("deposit message root:", hex.EncodeToString(root[:]))
+
+	signed, err := cred.SignedDeposit()
+	assert.Nil(t, err)
+	root, err = signed.HashTreeRoot()
+	assert.Nil(t, err)
+	t.Log("signed deposit message root:", hex.EncodeToString(root[:]))
+	t.Log("signature:", hex.EncodeToString(signed.Signature[:]))
+}
+
 func TestBLSCrendentials(t *testing.T) {
 	cred, err := NewCredential(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting)
+	assert.Nil(t, err)
+	tp, err := cred.withdrawType()
+	assert.Nil(t, err)
+	assert.EqualValues(t, blsWithdrawal, tp)
+
+	bts, err := cred.WithdrawCredentials()
+	assert.Nil(t, err)
+	t.Log("bls withdraw crendentials:", hex.EncodeToString(bts))
+
+	msg, err := cred.DepositMessage()
+	assert.Nil(t, err)
+	root, err := msg.HashTreeRoot()
+	assert.Nil(t, err)
+	t.Log("deposit message root:", hex.EncodeToString(root[:]))
+
+	signed, err := cred.SignedDeposit()
+	assert.Nil(t, err)
+	root, err = signed.HashTreeRoot()
+	assert.Nil(t, err)
+	t.Log("signed deposit message root:", hex.EncodeToString(root[:]))
+	t.Log("signature:", hex.EncodeToString(signed.Signature[:]))
+}
+
+func TestBLSCrendentialsV2(t *testing.T) {
+	cred, err := NewCredentialV2(memguard.NewBufferFromBytes(seed.Bytes()), 0, nil, MainnetSetting, 64)
 	assert.Nil(t, err)
 	tp, err := cred.withdrawType()
 	assert.Nil(t, err)
