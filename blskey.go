@@ -92,13 +92,14 @@ func _HKDF_mod_r(IKM []byte, key_info []byte) *big.Int {
 	binary.BigEndian.PutUint16(infoExtra, uint16(L))
 
 	SK := new(big.Int)
+	currentSalt := salt
 	for SK.BitLen() == 0 {
 		// PRK = HKDF-Extract(salt, IKM || I2OSP(0, 1))
 		ikm := make([]byte, len(IKM))
 		copy(ikm, IKM)
 		ikm = append(ikm, 0) // I20SP(0,1)
 
-		PRK := hkdf.Extract(sha256.New, ikm, salt[:])
+		PRK := hkdf.Extract(sha256.New, ikm, currentSalt[:])
 
 		//  OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L)
 		info := make([]byte, len(key_info))
@@ -114,6 +115,7 @@ func _HKDF_mod_r(IKM []byte, key_info []byte) *big.Int {
 
 		SK = new(big.Int).SetBytes(OKM)
 		SK.Mod(SK, R)
+		currentSalt = sha256.Sum256(currentSalt[:])
 	}
 
 	return SK
