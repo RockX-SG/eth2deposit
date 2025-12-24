@@ -2,11 +2,12 @@ package eth2deposit
 
 import (
 	"fmt"
-	"github.com/herumi/bls-eth-go-binary/bls"
 	"math/big"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/herumi/bls-eth-go-binary/bls"
 )
 
 type CompactDepositData struct {
@@ -29,7 +30,7 @@ func init() {
 func _path_to_nodes(path string) ([]uint32, error) {
 	path = strings.ReplaceAll(path, " ", "")
 
-	matched, err := regexp.MatchString("[m1234567890/]", path)
+	matched, err := regexp.MatchString("^[m0-9/]+$", path)
 	if err != nil {
 		return nil, err
 	}
